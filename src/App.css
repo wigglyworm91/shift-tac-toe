@@ -1,0 +1,232 @@
+/* ── Layout ─────────────────────────────────────────── */
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  position: relative;
+}
+
+.title {
+  font-size: 1.8rem;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+/* ── Disc counters ──────────────────────────────────── */
+.counters {
+  display: flex;
+  gap: 32px;
+}
+
+.disc-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.disc-counter.active {
+  border-color: #ffffff66;
+}
+
+.player-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.disc-counter.red .player-label { color: #e05c5c; }
+.disc-counter.black .player-label { color: #aaa; }
+
+.disc-pips {
+  display: flex;
+  gap: 5px;
+}
+
+.disc-pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.disc-pip.red { background: #e05c5c; }
+.disc-pip.black { background: #555; }
+.disc-pip.empty { background: transparent; border: 1px solid #444; }
+
+/* ── Player banner ──────────────────────────────────── */
+.player-banner {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 6px 20px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.player-banner.playing.red { color: #e05c5c; }
+.player-banner.playing.black { color: #aaa; }
+.player-banner.won { color: #ffd700; }
+.player-banner.draw { color: #aaa; }
+
+/* ── Board area ─────────────────────────────────────── */
+.board-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.drop-targets {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shift-spacer {
+  width: 40px;
+}
+
+/* ── Board clip + rows ──────────────────────────────── */
+.board-clip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.board-row-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.board-row {
+  display: flex;
+  gap: 4px;
+  /* Row is exactly 3 cells wide */
+  width: calc(3 * 80px + 2 * 4px);
+  overflow: visible;
+  border-radius: 46px;
+  outline: 2px solid transparent;
+  outline-offset: 4px;
+  transition: outline-color 0.15s;
+}
+
+/* Shifted row indicators */
+.board-row.offset--1 { outline-color: #ffffff33; }
+.board-row.offset-1  { outline-color: #ffffff33; }
+
+/* ── Cells ──────────────────────────────────────────── */
+.cell {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #333;
+  background: #16213e;
+  transition: background 0.1s, border-color 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+}
+
+.cell.red { background: #e05c5c; border-color: #e05c5c; }
+.cell.black { background: #555; border-color: #777; }
+.cell.winning {
+  box-shadow: 0 0 0 4px #ffd700;
+  border-color: #ffd700;
+}
+
+/* ── Buttons ────────────────────────────────────────── */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.drop-target {
+  width: 80px;
+  height: 36px;
+  font-size: 1.1rem;
+  color: #aaa;
+  background: #ffffff11;
+  border-radius: 6px;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.drop-target:not(.disabled):hover {
+  background: #ffffff22;
+  color: #fff;
+}
+
+.drop-target.disabled,
+.shift-btn.disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.shift-btn {
+  width: 40px;
+  height: 80px;
+  font-size: 1.2rem;
+  color: #aaa;
+  background: #ffffff11;
+  border-radius: 6px;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.shift-btn:not(.disabled):hover {
+  background: #ffffff22;
+  color: #fff;
+}
+
+/* ── New Game button ────────────────────────────────── */
+.new-game-btn {
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  background: #ffffff22;
+  color: #fff;
+  transition: background 0.15s;
+}
+
+.new-game-btn:hover {
+  background: #ffffff33;
+}
+
+/* ── Win overlay ────────────────────────────────────── */
+.win-overlay {
+  position: fixed;
+  inset: 0;
+  background: #00000088;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.win-dialog {
+  background: #16213e;
+  border: 2px solid #ffffff22;
+  border-radius: 16px;
+  padding: 40px 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.win-message {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffd700;
+}

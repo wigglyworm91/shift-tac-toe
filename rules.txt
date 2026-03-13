@@ -1,0 +1,14 @@
+There is a grid of cells similar to Connect Four, but it's only 3x3.
+Players (red and black) take turns dropping their discs into one of the three slots;
+ of course, if the column is full players must choose another one.
+There are five discs of each colour; these are a resource and should be tracked on screen in some way.
+
+Instead of dropping a disc, players may instead shift a row to the left or to the right.
+This action physically moves the discs in that row over by one. Gravity then ensues in all columns.
+It should be noted that the rows may only be moved by one from their original position; that is:
+ if the top row is shifted left, then it may not be shifted left anymore until it is shifted right.
+If a disc is shifted out of the playing field, such as by being in the left column preceding a left shift,
+ then it falls out of the board, and is reclaimed by the player to be played on a subsequent turn.
+
+The winner is the first player to get 3 of their colour in a row.
+It is possible for both players to win simultaneously.
