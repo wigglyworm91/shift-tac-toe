@@ -9,44 +9,56 @@ import './App.css';
 export function App() {
   const [gameState, dispatch] = useReducer(gameReducer, undefined, initialState);
 
-  // Display state — what the board actually renders. During a shift animation,
-  // displayBoard holds the PRE-shift board while displayOffsets reflects the
-  // new (post-shift) offset so the CSS transition plays. After the transition
-  // ends, displayBoard snaps to gameState.board.
+  // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
   const [displayBoard, setDisplayBoard] = useState<BoardType>(() => initialState().board);
-  const [displayOffsets, setDisplayOffsets] = useState<RowOffsets>([0, 0, 0]);
+
+  // slotOffsets: used by getSlots() to place board data into the 5-slot array.
+  // Stays at the OLD value during animation so data stays in its original positions.
+  const [slotOffsets, setSlotOffsets] = useState<RowOffsets>([0, 0, 0]);
+
+  // transformOffsets: drives the CSS translateX on the slider.
+  // Updated immediately on shift to trigger the CSS transition.
+  const [transformOffsets, setTransformOffsets] = useState<RowOffsets>([0, 0, 0]);
+
+  // Only play drop-in animation on explicit DROP actions, not after shift snaps.
+  const [enableDropAnim, setEnableDropAnim] = useState(false);
 
   const shiftAnimatingRef = useRef(false);
   const animatingRowRef = useRef<number | null>(null);
-  // Always-fresh refs so callbacks aren't stale
   const latestBoardRef = useRef(gameState.board);
   const latestOffsetsRef = useRef(gameState.rowOffsets);
   latestBoardRef.current = gameState.board;
   latestOffsetsRef.current = gameState.rowOffsets;
 
-  // Sync display state for drops and resets (any action that isn't a shift)
+  // Sync display state for non-shift actions (drops, resets).
   useEffect(() => {
     if (!shiftAnimatingRef.current) {
       setDisplayBoard(gameState.board);
-      setDisplayOffsets(gameState.rowOffsets);
+      setSlotOffsets(gameState.rowOffsets);
+      setTransformOffsets(gameState.rowOffsets);
+      setEnableDropAnim(true);
     }
   }, [gameState.board, gameState.rowOffsets]);
 
   function handleDrop(col: number) {
     dispatch({ type: 'DROP_DISC', col });
-    // useEffect above will sync displayBoard after re-render
   }
 
   function handleShift(row: number, direction: 'left' | 'right') {
-    const preBoard = gameState.board; // capture before dispatch
+    const preBoard = gameState.board;
+    const oldSlotOffsets = slotOffsets; // capture before any state change
     dispatch({ type: 'SHIFT_ROW', row, direction });
 
     shiftAnimatingRef.current = true;
     animatingRowRef.current = row;
 
-    // Keep showing the pre-shift board; only change offsets to trigger the CSS transition
+    // Freeze board + slot offsets at pre-shift state so disc positions don't jump.
     setDisplayBoard(preBoard);
-    setDisplayOffsets(prev => {
+    setSlotOffsets([...oldSlotOffsets] as RowOffsets);
+    setEnableDropAnim(false);
+
+    // Only update transformOffsets — this triggers the CSS transition.
+    setTransformOffsets(prev => {
       const next = [...prev] as RowOffsets;
       next[row] = prev[row] + (direction === 'left' ? -1 : 1);
       return next;
@@ -57,9 +69,11 @@ export function App() {
     if (row !== animatingRowRef.current || !shiftAnimatingRef.current) return;
     shiftAnimatingRef.current = false;
     animatingRowRef.current = null;
-    // Snap board to settled post-shift state; any gravity-dropped discs appear here
+    // Snap board and both offset arrays to actual post-shift state.
     setDisplayBoard(latestBoardRef.current);
-    setDisplayOffsets(latestOffsetsRef.current);
+    setSlotOffsets(latestOffsetsRef.current);
+    setTransformOffsets(latestOffsetsRef.current);
+    // Leave enableDropAnim false — post-shift snap should not play drop animations.
   }
 
   function handleReset() {
@@ -95,7 +109,9 @@ export function App() {
       <Board
         gameState={gameState}
         displayBoard={displayBoard}
-        displayOffsets={displayOffsets}
+        slotOffsets={slotOffsets}
+        transformOffsets={transformOffsets}
+        enableDropAnim={enableDropAnim}
         onDrop={handleDrop}
         onShift={handleShift}
         onShiftTransitionEnd={handleShiftTransitionEnd}
