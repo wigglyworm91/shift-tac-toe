@@ -4,6 +4,7 @@ import { gameReducer, initialState } from './logic/gameReducer';
 import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
+import { playDropSound, playShiftSound } from './sounds';
 import './App.css';
 
 export function App() {
@@ -41,12 +42,14 @@ export function App() {
   }, [gameState.board, gameState.rowOffsets]);
 
   function handleDrop(col: number) {
+    playDropSound(col);
     dispatch({ type: 'DROP_DISC', col });
   }
 
   function handleShift(row: number, direction: 'left' | 'right') {
     const preBoard = gameState.board;
     const oldSlotOffsets = slotOffsets; // capture before any state change
+    playShiftSound(direction);
     dispatch({ type: 'SHIFT_ROW', row, direction });
 
     shiftAnimatingRef.current = true;
