@@ -12,9 +12,9 @@ function colToPan(col: number): number {
 }
 
 /** Short percussive clack — bandpass-filtered noise burst */
-export function playDropSound(col: number): void {
+export function playDropSound(col: number, delaySec = 0): void {
   const ac = getCtx();
-  const now = ac.currentTime;
+  const now = ac.currentTime + delaySec;
   const duration = 0.07;
 
   const bufSize = Math.ceil(ac.sampleRate * duration);

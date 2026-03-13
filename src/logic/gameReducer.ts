@@ -18,6 +18,7 @@ export function initialState(): GameState {
     phase: 'playing',
     winners: [],
     winningCells: [],
+    lastGravityDrops: [],
   };
 }
 
@@ -89,7 +90,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
     }
     case 'SHIFT_ROW': {
       if (!canShift(state, action.row, action.direction)) return state;
-      const { board, reclaimed } = shiftRow(state.board, action.row, action.direction);
+      const { board, reclaimed, gravityDrops } = shiftRow(state.board, action.row, action.direction);
       const newOffsets = state.rowOffsets.map((o, i) =>
         i === action.row ? o + (action.direction === 'left' ? -1 : 1) : o
       ) as RowOffsets;
@@ -97,7 +98,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       for (const [player, count] of Object.entries(reclaimed) as [Player, number][]) {
         newDiscs[player] += count;
       }
-      return advanceTurn({ ...state, board, rowOffsets: newOffsets, discs: newDiscs });
+      return advanceTurn({ ...state, board, rowOffsets: newOffsets, discs: newDiscs, lastGravityDrops: gravityDrops });
     }
     case 'RESET_GAME':
       return initialState();

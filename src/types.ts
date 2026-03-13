@@ -11,6 +11,7 @@ export interface GameState {
   phase: 'playing' | 'won' | 'draw';
   winners: Player[];
   winningCells: [number, number][];
+  lastGravityDrops: [number, number][];
 }
 
 export type Action =

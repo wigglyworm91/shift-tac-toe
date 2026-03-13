@@ -1,9 +1,10 @@
 import type { Board, Cell, Player } from '../types';
-import { applyGravityAll } from './gravity';
+import { applyGravityAllTracked } from './gravity';
 
 export interface ShiftResult {
   board: Board;
   reclaimed: Partial<Record<Player, number>>;
+  gravityDrops: [number, number][];
 }
 
 export function shiftRow(
@@ -30,5 +31,6 @@ export function shiftRow(
   }
 
   const newBoard: Board = board.map((r, i) => (i === rowIndex ? row : [...r]));
-  return { board: applyGravityAll(newBoard), reclaimed };
+  const { board: settledBoard, drops: gravityDrops } = applyGravityAllTracked(newBoard);
+  return { board: settledBoard, reclaimed, gravityDrops };
 }

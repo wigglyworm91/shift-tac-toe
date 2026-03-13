@@ -28,8 +28,10 @@ export function App() {
   const animatingRowRef = useRef<number | null>(null);
   const latestBoardRef = useRef(gameState.board);
   const latestOffsetsRef = useRef(gameState.rowOffsets);
+  const latestGravityDropsRef = useRef(gameState.lastGravityDrops);
   latestBoardRef.current = gameState.board;
   latestOffsetsRef.current = gameState.rowOffsets;
+  latestGravityDropsRef.current = gameState.lastGravityDrops;
 
   // Sync display state for non-shift actions (drops, resets).
   useEffect(() => {
@@ -72,6 +74,9 @@ export function App() {
     if (row !== animatingRowRef.current || !shiftAnimatingRef.current) return;
     shiftAnimatingRef.current = false;
     animatingRowRef.current = null;
+    // Play clack for each disc that landed due to gravity after the shift.
+    latestGravityDropsRef.current.forEach(([, c], i) => playDropSound(c, i * 0.04));
+
     // Snap board and both offset arrays to actual post-shift state.
     setDisplayBoard(latestBoardRef.current);
     setSlotOffsets(latestOffsetsRef.current);

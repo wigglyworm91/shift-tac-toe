@@ -17,3 +17,17 @@ export function applyGravityAll(board: Board): Board {
     Array.from({ length: COLS }, (_, c) => settled[c][r])
   );
 }
+
+/** Like applyGravityAll but also reports which cells received a disc due to falling. */
+export function applyGravityAllTracked(board: Board): { board: Board; drops: [number, number][] } {
+  const newBoard = applyGravityAll(board);
+  const drops: [number, number][] = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (board[r][c] === null && newBoard[r][c] !== null) {
+        drops.push([r, c]);
+      }
+    }
+  }
+  return { board: newBoard, drops };
+}
