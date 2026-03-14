@@ -174,8 +174,11 @@ export function App() {
       />
 
       <div className="new-game-btns">
-        <button className="new-game-btn" onClick={() => handleModeChange('2p')}>
-          vs Player
+        <button
+          className={`new-game-btn${mode === '2p' ? ' active' : ''}`}
+          onClick={() => handleModeChange('2p')}
+        >
+          2 Player
         </button>
         <button
           className={`new-game-btn${mode === '1p' && difficulty === 'easy' ? ' active' : ''}`}
