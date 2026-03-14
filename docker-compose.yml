@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        BASE_URL: /shift-tac-toe/
+    ports:
+      - "${PORT:-5780}:80"
+    restart: unless-stopped

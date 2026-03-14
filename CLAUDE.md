@@ -48,6 +48,20 @@ npm run build    # typecheck + build
 
 **Game modes**: `mode: '1p' | '2p'` in App state. AI always plays black. Board and shift controls are `disabled` during AI turn.
 
+## Deployment
+
+Dockerised with a multi-stage build (Node builds, nginx serves). Deployed at `blahaj.beauty/shift-tac-toe/` behind an Apache reverse proxy.
+
+**Docker**:
+```bash
+docker compose up --build -d   # build and start
+docker compose down             # stop
+```
+
+The `BASE_URL` build arg (default `/shift-tac-toe/`) is passed to `vite build --base` so asset paths are correct under the subpath. It is set in `docker-compose.yml`. The host port is controlled by the `PORT` env var (default `5780`).
+
+**Apache config** (`/etc/apache2/sites-available/`): requires `mod_proxy` and `mod_proxy_http` (`a2enmod proxy proxy_http`). ProxyPass forwards `/shift-tac-toe` to `http://localhost:5780/`.
+
 ## AI
 
 Minimax with alpha-beta pruning, depth 7. Evaluation scores 8 lines by disc counts (2-in-line = ±100, 1-in-line = ±10, mixed = 0). Terminal scores include depth bonus to prefer faster wins / slower losses. Moves are shuffled before root iteration for non-determinism.

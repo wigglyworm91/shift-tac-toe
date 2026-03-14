@@ -9,12 +9,6 @@ function applyActions(actions: Action[]): GameState {
   return actions.reduce((s, a) => gameReducer(s, a), initialState());
 }
 
-// Helper: build a state where board[row][col] = player, bottom-filled per column
-// via real DROP actions so gravity is always satisfied.
-function dropSequence(cols: number[]): GameState {
-  return applyActions(cols.map(col => ({ type: 'DROP_DISC', col })));
-}
-
 describe('getBestMove — basic sanity', () => {
   it('returns a move on a fresh board', () => {
     const state = initialState();
