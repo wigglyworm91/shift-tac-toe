@@ -26,6 +26,10 @@ export function App() {
   // Only play drop-in animation on explicit DROP actions, not after shift snaps.
   const [enableDropAnim, setEnableDropAnim] = useState(false);
 
+  // Increments each time a shift animation ends — used as a dep so the AI
+  // effect re-runs after a human shift (shiftAnimatingRef alone isn't a React dep).
+  const [shiftAnimEndKey, setShiftAnimEndKey] = useState(0);
+
   const shiftAnimatingRef = useRef(false);
   const animatingRowRef = useRef<number | null>(null);
   const latestBoardRef = useRef(gameState.board);
@@ -66,7 +70,7 @@ export function App() {
     }, 500);
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, gameState.phase, gameState.currentPlayer, gameState.board]);
+  }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
 
   const isAiTurn = mode === '1p' && gameState.currentPlayer === 'black' && gameState.phase === 'playing';
 
@@ -109,6 +113,8 @@ export function App() {
     setSlotOffsets(latestOffsetsRef.current);
     setTransformOffsets(latestOffsetsRef.current);
     // Leave enableDropAnim false — post-shift snap should not play drop animations.
+    // Bump key so the AI useEffect re-runs now that the animation is done.
+    setShiftAnimEndKey(k => k + 1);
   }
 
   function handleReset() {
