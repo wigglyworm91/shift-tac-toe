@@ -80,11 +80,25 @@ function minimax(
   }
 }
 
+export type Difficulty = 'easy' | 'hard' | 'impossible';
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { depth: number; randomChance: number }> = {
+  easy:       { depth: 1, randomChance: 0.45 },
+  hard:       { depth: 4, randomChance: 0.15 },
+  impossible: { depth: 7, randomChance: 0 },
+};
+
 /** Returns the best action for the current player in `state`. */
-export function getBestMove(state: GameState, depth = 7): Action | null {
+export function getBestMove(state: GameState, difficulty: Difficulty = 'impossible'): Action | null {
+  const { depth, randomChance } = DIFFICULTY_CONFIG[difficulty];
   const aiPlayer = state.currentPlayer;
   const moves = getMoves(state);
   if (moves.length === 0) return null;
+
+  // Lower difficulties randomly skip minimax and pick any legal move.
+  if (randomChance > 0 && Math.random() < randomChance) {
+    return moves[Math.floor(Math.random() * moves.length)];
+  }
 
   // Shuffle to break ties non-deterministically
   for (let i = moves.length - 1; i > 0; i--) {

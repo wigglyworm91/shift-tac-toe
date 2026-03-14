@@ -1,7 +1,7 @@
 import { useReducer, useState, useRef, useEffect } from 'react';
 import type { Board as BoardType, RowOffsets } from './types';
 import { gameReducer, initialState } from './logic/gameReducer';
-import { getBestMove } from './logic/ai';
+import { getBestMove, type Difficulty } from './logic/ai';
 import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
@@ -10,6 +10,7 @@ import './App.css';
 
 export function App() {
   const [mode, setMode] = useState<'1p' | '2p'>('2p');
+  const [difficulty, setDifficulty] = useState<Difficulty>('impossible');
   const [gameState, dispatch] = useReducer(gameReducer, undefined, initialState);
 
   // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
@@ -62,7 +63,7 @@ export function App() {
 
     aiThinkingRef.current = true;
     const timer = setTimeout(() => {
-      const action = getBestMove(gameState);
+      const action = getBestMove(gameState, difficulty);
       aiThinkingRef.current = false;
       if (!action) return;
       if (action.type === 'DROP_DISC') handleDrop(action.col);
@@ -130,6 +131,12 @@ export function App() {
     handleReset();
   }
 
+  function handleAiGame(diff: Difficulty) {
+    setDifficulty(diff);
+    setMode('1p');
+    handleReset();
+  }
+
   return (
     <div className="game">
       <h1 className="title">Shift Tac Toe</h1>
@@ -168,10 +175,25 @@ export function App() {
 
       <div className="new-game-btns">
         <button className="new-game-btn" onClick={() => handleModeChange('2p')}>
-          New Game vs Player
+          vs Player
         </button>
-        <button className="new-game-btn" onClick={() => handleModeChange('1p')}>
-          New Game vs AI
+        <button
+          className={`new-game-btn${mode === '1p' && difficulty === 'easy' ? ' active' : ''}`}
+          onClick={() => handleAiGame('easy')}
+        >
+          Easy
+        </button>
+        <button
+          className={`new-game-btn${mode === '1p' && difficulty === 'hard' ? ' active' : ''}`}
+          onClick={() => handleAiGame('hard')}
+        >
+          Hard
+        </button>
+        <button
+          className={`new-game-btn${mode === '1p' && difficulty === 'impossible' ? ' active' : ''}`}
+          onClick={() => handleAiGame('impossible')}
+        >
+          Impossible
         </button>
       </div>
     </div>
