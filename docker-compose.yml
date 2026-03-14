@@ -1,4 +1,12 @@
 services:
+  gameserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    expose:
+      - "8080"
+    restart: unless-stopped
+
   frontend:
     build:
       context: .
@@ -7,3 +15,5 @@ services:
     ports:
       - "${PORT:-5780}:80"
     restart: unless-stopped
+    depends_on:
+      - gameserver

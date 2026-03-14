@@ -6,12 +6,26 @@ import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
 import { playDropSound, playShiftSound } from './sounds';
+import { useMultiplayer } from './multiplayer/useMultiplayer';
+import { OnlineLobby } from './multiplayer/OnlineLobby';
 import './App.css';
 
+function hasRoomCodeInUrl(): boolean {
+  const base = import.meta.env.BASE_URL as string;
+  const basePath = base.endsWith('/') ? base.slice(0, -1) : base;
+  const path = window.location.pathname.slice(basePath.length);
+  return /^\/game\/[A-Z0-9]{6}$/i.test(path);
+}
+
 export function App() {
-  const [mode, setMode] = useState<'1p' | '2p'>('2p');
+  const [mode, setMode] = useState<'1p' | '2p' | 'online'>(() =>
+    hasRoomCodeInUrl() ? 'online' : '2p'
+  );
   const [difficulty, setDifficulty] = useState<Difficulty>('impossible');
   const [gameState, dispatch] = useReducer(gameReducer, undefined, initialState);
+
+  const { mpState, shareUrl, myColor, createRoom, sendAction, disconnect, lastOpponentAction } =
+    useMultiplayer();
 
   // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
   const [displayBoard, setDisplayBoard] = useState<BoardType>(() => initialState().board);
@@ -73,18 +87,36 @@ export function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
 
-  const isAiTurn = mode === '1p' && gameState.currentPlayer === 'black' && gameState.phase === 'playing';
+  // Online: apply incoming opponent actions.
+  useEffect(() => {
+    if (!lastOpponentAction) return;
+    if (lastOpponentAction.type === 'DROP_DISC') {
+      handleDrop(lastOpponentAction.col, true);
+    } else if (lastOpponentAction.type === 'SHIFT_ROW') {
+      handleShift(lastOpponentAction.row, lastOpponentAction.direction, true);
+    } else if (lastOpponentAction.type === 'RESET_GAME') {
+      handleReset();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastOpponentAction]);
 
-  function handleDrop(col: number) {
+  const isAiTurn = mode === '1p' && gameState.currentPlayer === 'black' && gameState.phase === 'playing';
+  const isOnlineOpponentTurn = mode === 'online' && myColor !== null && gameState.currentPlayer !== myColor;
+  const boardDisabled = isAiTurn || isOnlineOpponentTurn;
+
+  // remote=true means this action came from the opponent — don't echo it back to the server.
+  function handleDrop(col: number, remote = false) {
     playDropSound(col);
     dispatch({ type: 'DROP_DISC', col });
+    if (mode === 'online' && !remote) sendAction({ type: 'DROP_DISC', col });
   }
 
-  function handleShift(row: number, direction: 'left' | 'right') {
+  function handleShift(row: number, direction: 'left' | 'right', remote = false) {
     const preBoard = gameState.board;
     const oldSlotOffsets = slotOffsets; // capture before any state change
     playShiftSound(direction);
     dispatch({ type: 'SHIFT_ROW', row, direction });
+    if (mode === 'online' && !remote) sendAction({ type: 'SHIFT_ROW', row, direction });
 
     shiftAnimatingRef.current = true;
     animatingRowRef.current = row;
@@ -127,13 +159,20 @@ export function App() {
   }
 
   function handleModeChange(newMode: '1p' | '2p') {
+    if (mode === 'online') disconnect();
     setMode(newMode);
     handleReset();
   }
 
   function handleAiGame(diff: Difficulty) {
+    if (mode === 'online') disconnect();
     setDifficulty(diff);
     setMode('1p');
+    handleReset();
+  }
+
+  function handleOnlineMode() {
+    setMode('online');
     handleReset();
   }
 
@@ -141,37 +180,52 @@ export function App() {
     <div className="game">
       <h1 className="title">Shift Tac Toe</h1>
 
-      <div className="counters">
-        <DiscCounter
-          player="red"
-          count={gameState.discs.red}
-          isCurrentPlayer={gameState.currentPlayer === 'red'}
+      {mode === 'online' && mpState !== 'playing' ? (
+        <OnlineLobby
+          mpState={mpState}
+          shareUrl={shareUrl}
+          onCreateRoom={createRoom}
+          onDisconnect={() => {
+            disconnect();
+            setMode('2p');
+            handleReset();
+          }}
         />
-        <DiscCounter
-          player="black"
-          count={gameState.discs.black}
-          isCurrentPlayer={gameState.currentPlayer === 'black'}
-        />
-      </div>
+      ) : (
+        <>
+          <div className="counters">
+            <DiscCounter
+              player="red"
+              count={gameState.discs.red}
+              isCurrentPlayer={gameState.currentPlayer === 'red'}
+            />
+            <DiscCounter
+              player="black"
+              count={gameState.discs.black}
+              isCurrentPlayer={gameState.currentPlayer === 'black'}
+            />
+          </div>
 
-      <PlayerBanner
-        currentPlayer={gameState.currentPlayer}
-        phase={gameState.phase}
-        winners={gameState.winners}
-        isAiTurn={isAiTurn}
-      />
+          <PlayerBanner
+            currentPlayer={gameState.currentPlayer}
+            phase={gameState.phase}
+            winners={gameState.winners}
+            isAiTurn={isAiTurn}
+          />
 
-      <Board
-        gameState={gameState}
-        displayBoard={displayBoard}
-        slotOffsets={slotOffsets}
-        transformOffsets={transformOffsets}
-        enableDropAnim={enableDropAnim}
-        onDrop={handleDrop}
-        onShift={handleShift}
-        onShiftTransitionEnd={handleShiftTransitionEnd}
-        disabled={isAiTurn}
-      />
+          <Board
+            gameState={gameState}
+            displayBoard={displayBoard}
+            slotOffsets={slotOffsets}
+            transformOffsets={transformOffsets}
+            enableDropAnim={enableDropAnim}
+            onDrop={handleDrop}
+            onShift={handleShift}
+            onShiftTransitionEnd={handleShiftTransitionEnd}
+            disabled={boardDisabled}
+          />
+        </>
+      )}
 
       <div className="new-game-btns">
         <button
@@ -197,6 +251,12 @@ export function App() {
           onClick={() => handleAiGame('impossible')}
         >
           Impossible
+        </button>
+        <button
+          className={`new-game-btn${mode === 'online' ? ' active' : ''}`}
+          onClick={handleOnlineMode}
+        >
+          Online
         </button>
       </div>
     </div>
