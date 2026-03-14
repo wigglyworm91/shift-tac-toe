@@ -15,6 +15,7 @@ interface BoardProps {
   onDrop: (col: number) => void;
   onShift: (row: number, direction: 'left' | 'right') => void;
   onShiftTransitionEnd: (row: number) => void;
+  disabled?: boolean;
 }
 
 // Build the 5-slot array using slotOffsets (the PRE-shift offset).
@@ -40,6 +41,7 @@ export function Board({
   onDrop,
   onShift,
   onShiftTransitionEnd,
+  disabled = false,
 }: BoardProps) {
   const { winningCells } = gameState;
 
@@ -74,7 +76,7 @@ export function Board({
           <ColumnDropTarget
             key={c}
             col={c}
-            disabled={!canDrop(gameState, c)}
+            disabled={disabled || !canDrop(gameState, c)}
             onDrop={() => onDrop(c)}
           />
         ))}
@@ -94,8 +96,8 @@ export function Board({
               <RowShiftControls
                 row={r}
                 side="left"
-                canShiftLeft={canShift(gameState, r, 'left')}
-                canShiftRight={canShift(gameState, r, 'right')}
+                canShiftLeft={!disabled && canShift(gameState, r, 'left')}
+                canShiftRight={!disabled && canShift(gameState, r, 'right')}
                 onShiftLeft={() => onShift(r, 'left')}
                 onShiftRight={() => onShift(r, 'right')}
               />
@@ -128,8 +130,8 @@ export function Board({
               <RowShiftControls
                 row={r}
                 side="right"
-                canShiftLeft={canShift(gameState, r, 'left')}
-                canShiftRight={canShift(gameState, r, 'right')}
+                canShiftLeft={!disabled && canShift(gameState, r, 'left')}
+                canShiftRight={!disabled && canShift(gameState, r, 'right')}
                 onShiftLeft={() => onShift(r, 'left')}
                 onShiftRight={() => onShift(r, 'right')}
               />

@@ -1,6 +1,7 @@
 import { useReducer, useState, useRef, useEffect } from 'react';
 import type { Board as BoardType, RowOffsets } from './types';
 import { gameReducer, initialState } from './logic/gameReducer';
+import { getBestMove } from './logic/ai';
 import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
@@ -8,6 +9,7 @@ import { playDropSound, playShiftSound } from './sounds';
 import './App.css';
 
 export function App() {
+  const [mode, setMode] = useState<'1p' | '2p'>('2p');
   const [gameState, dispatch] = useReducer(gameReducer, undefined, initialState);
 
   // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
@@ -42,6 +44,31 @@ export function App() {
       setEnableDropAnim(true);
     }
   }, [gameState.board, gameState.rowOffsets]);
+
+  // AI: trigger a move when it's black's turn in 1P mode.
+  const aiThinkingRef = useRef(false);
+  useEffect(() => {
+    if (
+      mode !== '1p' ||
+      gameState.phase !== 'playing' ||
+      gameState.currentPlayer !== 'black' ||
+      shiftAnimatingRef.current ||
+      aiThinkingRef.current
+    ) return;
+
+    aiThinkingRef.current = true;
+    const timer = setTimeout(() => {
+      const action = getBestMove(gameState);
+      aiThinkingRef.current = false;
+      if (!action) return;
+      if (action.type === 'DROP_DISC') handleDrop(action.col);
+      else if (action.type === 'SHIFT_ROW') handleShift(action.row, action.direction);
+    }, 500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, gameState.phase, gameState.currentPlayer, gameState.board]);
+
+  const isAiTurn = mode === '1p' && gameState.currentPlayer === 'black' && gameState.phase === 'playing';
 
   function handleDrop(col: number) {
     playDropSound(col);
@@ -88,7 +115,13 @@ export function App() {
     dispatch({ type: 'RESET_GAME' });
     shiftAnimatingRef.current = false;
     animatingRowRef.current = null;
+    aiThinkingRef.current = false;
     // useEffect will sync on next render
+  }
+
+  function handleModeChange(newMode: '1p' | '2p') {
+    setMode(newMode);
+    handleReset();
   }
 
   return (
@@ -112,6 +145,7 @@ export function App() {
         currentPlayer={gameState.currentPlayer}
         phase={gameState.phase}
         winners={gameState.winners}
+        isAiTurn={isAiTurn}
       />
 
       <Board
@@ -123,11 +157,17 @@ export function App() {
         onDrop={handleDrop}
         onShift={handleShift}
         onShiftTransitionEnd={handleShiftTransitionEnd}
+        disabled={isAiTurn}
       />
 
-      <button className="new-game-btn" onClick={handleReset}>
-        New Game
-      </button>
+      <div className="new-game-btns">
+        <button className="new-game-btn" onClick={() => handleModeChange('2p')}>
+          New Game vs Player
+        </button>
+        <button className="new-game-btn" onClick={() => handleModeChange('1p')}>
+          New Game vs AI
+        </button>
+      </div>
     </div>
   );
 }

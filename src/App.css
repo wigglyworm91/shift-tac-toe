@@ -201,7 +201,12 @@ button {
   color: #fff;
 }
 
-/* ── New Game button ────────────────────────────────── */
+/* ── New Game buttons ───────────────────────────────── */
+.new-game-btns {
+  display: flex;
+  gap: 8px;
+}
+
 .new-game-btn {
   padding: 10px 28px;
   border-radius: 8px;
