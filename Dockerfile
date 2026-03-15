@@ -6,7 +6,7 @@ RUN npm ci
 COPY . .
 ARG BASE_URL=/
 ENV BASE_URL=$BASE_URL
-RUN npx tsc -b && npx vite build --base=${BASE_URL}
+RUN npx vite build --base=${BASE_URL}
 
 # Stage 2: serve
 FROM nginx:alpine

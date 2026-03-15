@@ -3,6 +3,6 @@ WORKDIR /app
 COPY package*.json tsconfig.server.json ./
 RUN npm ci
 COPY server/ ./server/
-RUN npx tsc --project tsconfig.server.json
+RUN npx esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.js --external:ws
 EXPOSE 8080
 CMD ["node", "dist-server/index.js"]
