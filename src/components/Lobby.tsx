@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { GameConfig } from '../types';
 import type { Difficulty } from '../logic/ai';
 
@@ -112,6 +113,22 @@ export function Lobby({ selections, onChange, onPlay, username, onUsernameChange
   const { board, shifting, mode, aiDifficulty, customRows, customCols, customWinLength } = selections;
   const maxWin = Math.max(2, Math.min(customRows, customCols));
 
+  const [vsAiClicks, setVsAiClicks] = useState(0);
+  const easterEggUnlocked = vsAiClicks >= 3;
+
+  function handleModeChange(m: ModeKey) {
+    if (m === '1p') setVsAiClicks(c => c + 1);
+    else setVsAiClicks(0);
+    onChange({ ...selections, mode: m });
+  }
+
+  const modeOptions: { key: ModeKey; label: string }[] = [
+    { key: '2p',     label: 'Local' },
+    { key: '1p',     label: 'vs AI' },
+    { key: 'online', label: 'Online' },
+    ...(easterEggUnlocked ? [{ key: '0p' as ModeKey, label: 'AI vs AI' }] : []),
+  ];
+
   return (
     <div className="pre-lobby">
       <h1 className="title">Shift Tac Toe</h1>
@@ -143,14 +160,9 @@ export function Lobby({ selections, onChange, onPlay, username, onUsernameChange
         />
         <OptionGroup
           label="Mode"
-          options={[
-            { key: '2p',     label: 'Local' },
-            { key: '1p',     label: 'vs AI' },
-            { key: '0p',     label: 'AI vs AI' },
-            { key: 'online', label: 'Online' },
-          ]}
+          options={modeOptions}
           value={mode}
-          onChange={m => onChange({ ...selections, mode: m })}
+          onChange={handleModeChange}
         />
         <div className={`custom-fields${(mode === '1p' || mode === '0p') ? ' open' : ''}`}>
           <OptionGroup
