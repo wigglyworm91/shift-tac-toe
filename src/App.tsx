@@ -29,7 +29,7 @@ export function App() {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [rulesOpen, setRulesOpen] = useState(false);
   const [lobbySelections, setLobbySelections] = useState<LobbySelections>({
-    board: '3x3', shifting: 'once', mode: '1p-easy',
+    board: '3x3', shifting: 'once', mode: '1p', aiDifficulty: 'easy',
     customRows: 4, customCols: 4, customWinLength: 3,
   });
   const [gameState, dispatch] = useReducer(gameReducer, undefined, () =>

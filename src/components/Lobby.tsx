@@ -3,7 +3,7 @@ import type { Difficulty } from '../logic/ai';
 
 export type BoardKey = '3x3' | '6x7' | 'custom';
 export type ShiftKey = 'off' | 'once' | 'unlimited';
-export type ModeKey = '2p' | '1p-easy' | '1p-hard' | '1p-impossible' | '0p' | 'online';
+export type ModeKey = '2p' | '1p' | '0p' | 'online';
 
 export const BOARD_CONFIGS: Record<Exclude<BoardKey, 'custom'>, Omit<GameConfig, 'maxOffset'>> = {
   '3x3': { rows: 3, cols: 3, winLength: 3 },
@@ -26,6 +26,7 @@ export interface LobbySelections {
   board: BoardKey;
   shifting: ShiftKey;
   mode: ModeKey;
+  aiDifficulty: Difficulty;
   customRows: number;
   customCols: number;
   customWinLength: number;
@@ -36,10 +37,10 @@ export function lobbyChoiceFromSelections(s: LobbySelections): LobbyChoice {
     ? { rows: s.customRows, cols: s.customCols, winLength: s.customWinLength }
     : BOARD_CONFIGS[s.board];
   const config: GameConfig = { ...base, maxOffset: MAX_OFFSETS[s.shifting] };
-  if (s.mode === '2p') return { config, mode: '2p' };
+  if (s.mode === '2p')     return { config, mode: '2p' };
+  if (s.mode === '0p')     return { config, mode: '0p' };
   if (s.mode === 'online') return { config, mode: 'online' };
-  if (s.mode === '0p') return { config, mode: '0p' };
-  return { config, mode: '1p', difficulty: s.mode.slice(3) as Difficulty };
+  return { config, mode: '1p', difficulty: s.aiDifficulty };
 }
 
 interface LobbyProps {
@@ -106,7 +107,7 @@ function NumInput({ label, value, min, max, onChange }: {
 }
 
 export function Lobby({ selections, onChange, onPlay }: LobbyProps) {
-  const { board, shifting, mode, customRows, customCols, customWinLength } = selections;
+  const { board, shifting, mode, aiDifficulty, customRows, customCols, customWinLength } = selections;
   const maxWin = Math.max(2, Math.min(customRows, customCols));
 
   return (
@@ -141,16 +142,26 @@ export function Lobby({ selections, onChange, onPlay }: LobbyProps) {
         <OptionGroup
           label="Mode"
           options={[
-            { key: '2p',            label: 'Local' },
-            { key: '1p-easy',       label: 'Easy' },
-            { key: '1p-hard',       label: 'Hard' },
-            { key: '1p-impossible', label: 'Impossible' },
-            { key: '0p',            label: 'AI vs AI' },
-            { key: 'online',        label: 'Online' },
+            { key: '2p',     label: 'Local' },
+            { key: '1p',     label: 'vs AI' },
+            { key: '0p',     label: 'AI vs AI' },
+            { key: 'online', label: 'Online' },
           ]}
           value={mode}
           onChange={m => onChange({ ...selections, mode: m })}
         />
+        <div className={`custom-fields${(mode === '1p' || mode === '0p') ? ' open' : ''}`}>
+          <OptionGroup
+            label="AI Level"
+            options={[
+              { key: 'easy',       label: 'Easy' },
+              { key: 'hard',       label: 'Hard' },
+              { key: 'impossible', label: 'Impossible' },
+            ]}
+            value={aiDifficulty}
+            onChange={d => onChange({ ...selections, aiDifficulty: d })}
+          />
+        </div>
       </div>
       <button className="lobby-play-btn" onClick={() => onPlay(lobbyChoiceFromSelections(selections))}>
         Play
