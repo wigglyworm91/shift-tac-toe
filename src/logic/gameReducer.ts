@@ -9,11 +9,11 @@ function emptyBoard(): Board {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
 }
 
-export function initialState(): GameState {
+export function initialState(firstPlayer: Player = 'red'): GameState {
   return {
     board: emptyBoard(),
     rowOffsets: [0, 0, 0],
-    currentPlayer: 'red',
+    currentPlayer: firstPlayer,
     discs: { red: DISCS_PER_PLAYER, black: DISCS_PER_PLAYER },
     phase: 'playing',
     winners: [],
@@ -101,6 +101,6 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return advanceTurn({ ...state, board, rowOffsets: newOffsets, discs: newDiscs, lastGravityDrops: gravityDrops });
     }
     case 'RESET_GAME':
-      return initialState();
+      return initialState(action.firstPlayer);
   }
 }

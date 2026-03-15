@@ -17,4 +17,4 @@ export interface GameState {
 export type Action =
   | { type: 'DROP_DISC'; col: number }
   | { type: 'SHIFT_ROW'; row: number; direction: 'left' | 'right' }
-  | { type: 'RESET_GAME' };
+  | { type: 'RESET_GAME'; firstPlayer?: Player };

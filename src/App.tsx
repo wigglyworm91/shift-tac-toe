@@ -19,10 +19,12 @@ function hasRoomCodeInUrl(): boolean {
 
 export function App() {
   const [mode, setMode] = useState<'1p' | '2p' | 'online'>(() =>
-    hasRoomCodeInUrl() ? 'online' : '2p'
+    hasRoomCodeInUrl() ? 'online' : '1p'
   );
-  const [difficulty, setDifficulty] = useState<Difficulty>('impossible');
-  const [gameState, dispatch] = useReducer(gameReducer, undefined, initialState);
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [gameState, dispatch] = useReducer(gameReducer, undefined, () =>
+    initialState(hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
+  );
 
   const { mpState, shareUrl, myColor, createRoom, sendAction, disconnect, lastOpponentAction } =
     useMultiplayer();
@@ -67,6 +69,13 @@ export function App() {
   // AI: trigger a move when it's black's turn in 1P mode.
   const aiThinkingRef = useRef(false);
   useEffect(() => {
+    console.log('[AI effect]', {
+      mode,
+      phase: gameState.phase,
+      currentPlayer: gameState.currentPlayer,
+      shiftAnimating: shiftAnimatingRef.current,
+      aiThinking: aiThinkingRef.current,
+    });
     if (
       mode !== '1p' ||
       gameState.phase !== 'playing' ||
@@ -75,15 +84,17 @@ export function App() {
       aiThinkingRef.current
     ) return;
 
+    console.log('[AI] scheduling move, difficulty:', difficulty);
     aiThinkingRef.current = true;
     const timer = setTimeout(() => {
       const action = getBestMove(gameState, difficulty);
       aiThinkingRef.current = false;
+      console.log('[AI] got action:', action);
       if (!action) return;
       if (action.type === 'DROP_DISC') handleDrop(action.col);
       else if (action.type === 'SHIFT_ROW') handleShift(action.row, action.direction);
     }, 500);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); aiThinkingRef.current = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
 
@@ -95,7 +106,7 @@ export function App() {
     } else if (lastOpponentAction.type === 'SHIFT_ROW') {
       handleShift(lastOpponentAction.row, lastOpponentAction.direction, true);
     } else if (lastOpponentAction.type === 'RESET_GAME') {
-      handleReset();
+      handleReset(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastOpponentAction]);
@@ -150,8 +161,12 @@ export function App() {
     setShiftAnimEndKey(k => k + 1);
   }
 
-  function handleReset() {
-    dispatch({ type: 'RESET_GAME' });
+  function randomPlayer(): 'red' | 'black' {
+    return Math.random() < 0.5 ? 'red' : 'black';
+  }
+
+  function handleReset(is1p = mode === '1p') {
+    dispatch({ type: 'RESET_GAME', firstPlayer: is1p ? randomPlayer() : 'red' });
     shiftAnimatingRef.current = false;
     animatingRowRef.current = null;
     aiThinkingRef.current = false;
@@ -161,19 +176,25 @@ export function App() {
   function handleModeChange(newMode: '1p' | '2p') {
     if (mode === 'online') disconnect();
     setMode(newMode);
-    handleReset();
+    dispatch({ type: 'RESET_GAME', firstPlayer: newMode === '1p' ? randomPlayer() : 'red' });
+    shiftAnimatingRef.current = false;
+    animatingRowRef.current = null;
+    aiThinkingRef.current = false;
   }
 
   function handleAiGame(diff: Difficulty) {
     if (mode === 'online') disconnect();
     setDifficulty(diff);
     setMode('1p');
-    handleReset();
+    dispatch({ type: 'RESET_GAME', firstPlayer: randomPlayer() });
+    shiftAnimatingRef.current = false;
+    animatingRowRef.current = null;
+    aiThinkingRef.current = false;
   }
 
   function handleOnlineMode() {
     setMode('online');
-    handleReset();
+    handleReset(false);
   }
 
   return (
