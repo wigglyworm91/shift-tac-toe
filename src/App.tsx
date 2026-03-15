@@ -21,9 +21,7 @@ function hasRoomCodeInUrl(): boolean {
 
 export function App() {
   // 'lobby' | 'game' — skip lobby if joining via URL room code
-  const [screen, setScreen] = useState<'lobby' | 'game'>(() =>
-    hasRoomCodeInUrl() ? 'game' : 'lobby'
-  );
+  const [screen, setScreen] = useState<'lobby' | 'game'>('game');
   const [mode, setMode] = useState<'1p' | '2p' | 'online'>(() =>
     hasRoomCodeInUrl() ? 'online' : '1p'
   );
@@ -115,6 +113,7 @@ export function App() {
   useEffect(() => {
     if (rematchAccepted === 0) return;
     handleReset(false);
+    playGameStartSound();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rematchAccepted]);
 
