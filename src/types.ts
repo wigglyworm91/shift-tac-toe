@@ -20,6 +20,8 @@ export interface GameState {
   winners: Player[];
   winningCells: [number, number][];
   lastGravityDrops: [number, number][];
+  positionCounts: Record<string, number>;
+  repetitionWarning: boolean;
 }
 
 export type Action =

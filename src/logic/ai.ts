@@ -1,5 +1,5 @@
 import type { GameState, Action, Player, GameConfig } from '../types';
-import { gameReducer } from './gameReducer';
+import { gameReducer, hashPosition } from './gameReducer';
 import { canDrop, canShift } from './validation';
 import { generateLines } from './winDetection';
 
@@ -36,6 +36,12 @@ function evaluate(state: GameState, aiPlayer: Player, lines: Coord[][]): number 
     if (aiCount > 0)  score += Math.pow(10, aiCount - 1);
     if (oppCount > 0) score -= Math.pow(10, oppCount - 1);
   }
+
+  // Slight penalty for positions approaching draw by repetition.
+  // Discourages cycling when ahead, but a draw (0) still beats a loss (-10000).
+  const hash = hashPosition(state.board, state.rowOffsets, state.currentPlayer, state.config.maxOffset);
+  if ((state.positionCounts[hash] ?? 0) >= 2) score -= 50;
+
   return score;
 }
 

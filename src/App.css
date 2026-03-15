@@ -314,6 +314,13 @@ button {
 }
 
 /* ── Rematch ────────────────────────────────────────── */
+.repetition-warning {
+  font-size: 0.85rem;
+  color: #e0a020;
+  text-align: center;
+  padding: 4px 0;
+}
+
 .rematch-row {
   display: flex;
   align-items: center;

@@ -331,6 +331,12 @@ export function App() {
             disabled={boardDisabled}
           />
 
+          {gameState.repetitionWarning && gameState.phase === 'playing' && (
+            <div className="repetition-warning">
+              Repeated position — one more repetition = draw
+            </div>
+          )}
+
           {mode === 'online' && gameState.phase !== 'playing' && (
             <div className="rematch-row">
               {rematchState === 'none' && (

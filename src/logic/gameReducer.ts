@@ -9,18 +9,38 @@ function emptyBoard(rows: number, cols: number): Board {
   return Array.from({ length: rows }, () => Array(cols).fill(null));
 }
 
+/** Canonical string key for a position — board + row offsets + whose turn it is.
+ *  Row offsets are normalised to limit-status (-1 = at left limit, 0 = free, +1 = at right limit)
+ *  so positions that differ only in the specific numeric offset but have the same shift
+ *  availability are treated as identical. This is especially important for unlimited shifting,
+ *  where the raw numeric offset is meaningless.
+ */
+export function hashPosition(board: Board, rowOffsets: number[], currentPlayer: Player, maxOffset: number): string {
+  const normOffsets = rowOffsets.map(o =>
+    o <= -maxOffset ? -1 : o >= maxOffset ? 1 : 0
+  );
+  return board.map(row => row.map(c => c ? c[0] : '.').join('')).join('|')
+    + '/' + normOffsets.join(',')
+    + '/' + currentPlayer;
+}
+
 export function initialState(config: GameConfig = DEFAULT_CONFIG, firstPlayer: Player = 'red'): GameState {
   const discsPerPlayer = Math.ceil(config.rows * config.cols / 2);
+  const board = emptyBoard(config.rows, config.cols);
+  const rowOffsets = Array(config.rows).fill(0);
+  const initHash = hashPosition(board, rowOffsets, firstPlayer, config.maxOffset);
   return {
     config,
-    board: emptyBoard(config.rows, config.cols),
-    rowOffsets: Array(config.rows).fill(0),
+    board,
+    rowOffsets,
     currentPlayer: firstPlayer,
     discs: { red: discsPerPlayer, black: discsPerPlayer },
     phase: 'playing',
     winners: [],
     winningCells: [],
     lastGravityDrops: [],
+    positionCounts: { [initHash]: 1 },
+    repetitionWarning: false,
   };
 }
 
@@ -57,7 +77,16 @@ function advanceTurn(state: GameState): GameState {
     return state;
   }
 
-  return { ...state, currentPlayer: next };
+  // Track position for 3-move-repetition rule.
+  const hash = hashPosition(state.board, state.rowOffsets, next, state.config.maxOffset);
+  const count = (state.positionCounts[hash] ?? 0) + 1;
+  const positionCounts = { ...state.positionCounts, [hash]: count };
+
+  if (count >= 3) {
+    return { ...state, currentPlayer: next, positionCounts, repetitionWarning: false, phase: 'draw' };
+  }
+
+  return { ...state, currentPlayer: next, positionCounts, repetitionWarning: count >= 2 };
 }
 
 function dropDisc(state: GameState, col: number): GameState {
