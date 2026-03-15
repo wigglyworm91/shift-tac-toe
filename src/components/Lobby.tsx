@@ -79,8 +79,8 @@ export function Lobby({ onPlay }: LobbyProps) {
         <OptionGroup
           label="Board"
           options={[
-            { key: '3x3', label: '3 × 3' },
-            { key: '6x7', label: '6 × 7' },
+            { key: '3x3', label: 'Tic Tac Toe' },
+            { key: '6x7', label: 'Connect Four' },
           ]}
           value={board}
           onChange={setBoard}
