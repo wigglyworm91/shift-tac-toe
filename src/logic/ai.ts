@@ -1,4 +1,4 @@
-import type { GameState, Action, Player } from '../types';
+import type { GameState, Action, Player, GameConfig } from '../types';
 import { gameReducer } from './gameReducer';
 import { canDrop, canShift } from './validation';
 import { generateLines } from './winDetection';
@@ -31,10 +31,10 @@ function evaluate(state: GameState, aiPlayer: Player, lines: Coord[][]): number 
     }
     // Mixed lines are worthless — skip
     if (aiCount > 0 && oppCount > 0) continue;
-    if (aiCount === 2) score += 100;
-    else if (aiCount === 1) score += 10;
-    if (oppCount === 2) score -= 100;
-    else if (oppCount === 1) score -= 10;
+    // Score scales exponentially with count so near-complete lines dominate.
+    // 10^(n-1): 1 disc → 1pt, 2 → 10pt, 3 → 100pt, etc.
+    if (aiCount > 0)  score += Math.pow(10, aiCount - 1);
+    if (oppCount > 0) score -= Math.pow(10, oppCount - 1);
   }
   return score;
 }
@@ -83,15 +83,26 @@ function minimax(
 
 export type Difficulty = 'easy' | 'hard' | 'impossible';
 
-const DIFFICULTY_CONFIG: Record<Difficulty, { depth: number; randomChance: number }> = {
-  easy:       { depth: 1, randomChance: 0.45 },
-  hard:       { depth: 4, randomChance: 0.15 },
-  impossible: { depth: 7, randomChance: 0 },
+const DIFFICULTY_CONFIG: Record<Difficulty, { maxDepth: number; randomChance: number }> = {
+  easy:       { maxDepth: 1, randomChance: 0.45 },
+  hard:       { maxDepth: 4, randomChance: 0.15 },
+  impossible: { maxDepth: 7, randomChance: 0 },
 };
+
+/**
+ * Scale search depth so compute time stays roughly constant across board sizes.
+ * Targets the same number of nodes as a 3×3 board at depth 7 (≈9^7 ≈ 5M).
+ * depth = 7 × log(9) / log(branchFactor), capped at maxDepth and floored at 3.
+ */
+function adaptiveDepth(config: GameConfig, maxDepth: number): number {
+  const branch = config.cols + 2 * config.rows; // rough worst-case moves/turn
+  const scaled = Math.round(7 * Math.log(9) / Math.log(Math.max(branch, 9)));
+  return Math.max(3, Math.min(maxDepth, scaled));
+}
 
 /** Returns the best action for the current player in `state`. */
 export function getBestMove(state: GameState, difficulty: Difficulty = 'impossible'): Action | null {
-  const { depth, randomChance } = DIFFICULTY_CONFIG[difficulty];
+  const { maxDepth, randomChance } = DIFFICULTY_CONFIG[difficulty];
   const aiPlayer = state.currentPlayer;
   const moves = getMoves(state);
   if (moves.length === 0) return null;
@@ -100,6 +111,8 @@ export function getBestMove(state: GameState, difficulty: Difficulty = 'impossib
   if (randomChance > 0 && Math.random() < randomChance) {
     return moves[Math.floor(Math.random() * moves.length)];
   }
+
+  const depth = adaptiveDepth(state.config, maxDepth);
 
   // Generate lines once for this search
   const lines = generateLines(state.config.rows, state.config.cols, state.config.winLength);

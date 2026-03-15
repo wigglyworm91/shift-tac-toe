@@ -54,6 +54,7 @@ export function App() {
   // effect re-runs after a human shift (shiftAnimatingRef alone isn't a React dep).
   const [shiftAnimEndKey, setShiftAnimEndKey] = useState(0);
 
+  const isOnlineCreatorRef = useRef(false);
   const shiftAnimatingRef = useRef(false);
   const animatingRowRef = useRef<number | null>(null);
   const latestBoardRef = useRef(gameState.board);
@@ -106,8 +107,14 @@ export function App() {
   }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
 
   // Online: reset the board when a new online game starts.
+  // Creator also sends their config to the joiner so both boards match.
   useEffect(() => {
-    if (mpState === 'playing') { handleReset(false); playGameStartSound(); }
+    if (mpState !== 'playing') return;
+    handleReset(false);
+    playGameStartSound();
+    if (isOnlineCreatorRef.current) {
+      sendAction({ type: 'RESET_GAME', config: gameState.config, firstPlayer: 'red' });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mpState]);
 
@@ -127,7 +134,11 @@ export function App() {
     } else if (lastOpponentAction.type === 'SHIFT_ROW') {
       handleShift(lastOpponentAction.row, lastOpponentAction.direction, true);
     } else if (lastOpponentAction.type === 'RESET_GAME') {
-      handleReset(false);
+      // Apply the opponent's config (creator → joiner sync).
+      dispatch({ type: 'RESET_GAME', firstPlayer: 'red', config: lastOpponentAction.config });
+      shiftAnimatingRef.current = false;
+      animatingRowRef.current = null;
+      aiThinkingRef.current = false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastOpponentAction]);
@@ -227,6 +238,7 @@ export function App() {
 
     if (choice.mode === 'online') {
       if (mode === 'online') disconnect();
+      isOnlineCreatorRef.current = true;
       setMode('online');
       dispatch({ type: 'RESET_GAME', config: choice.config, firstPlayer: 'red' });
       setScreen('game');
