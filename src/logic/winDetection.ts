@@ -1,20 +1,22 @@
 import type { Board, Player } from '../types';
+import { ROWS, COLS } from '../constants';
 
 type Coord = [number, number];
 
-export const LINES: Coord[][] = [
-  // Rows
-  [[0,0],[0,1],[0,2]],
-  [[1,0],[1,1],[1,2]],
-  [[2,0],[2,1],[2,2]],
-  // Columns
-  [[0,0],[1,0],[2,0]],
-  [[0,1],[1,1],[2,1]],
-  [[0,2],[1,2],[2,2]],
-  // Diagonals
-  [[0,0],[1,1],[2,2]],
-  [[0,2],[1,1],[2,0]],
-];
+function generateLines(): Coord[][] {
+  const lines: Coord[][] = [];
+  for (let r = 0; r < ROWS; r++)
+    lines.push(Array.from({ length: COLS }, (_, c) => [r, c] as Coord));
+  for (let c = 0; c < COLS; c++)
+    lines.push(Array.from({ length: ROWS }, (_, r) => [r, c] as Coord));
+  if (ROWS === COLS) {
+    lines.push(Array.from({ length: ROWS }, (_, i) => [i, i] as Coord));
+    lines.push(Array.from({ length: ROWS }, (_, i) => [i, COLS - 1 - i] as Coord));
+  }
+  return lines;
+}
+
+export const LINES: Coord[][] = generateLines();
 
 export interface WinResult {
   winners: Player[];

@@ -1,3 +1,4 @@
+import { DISCS_PER_PLAYER } from '../constants';
 import type { Player } from '../types';
 
 interface DiscCounterProps {
@@ -14,7 +15,7 @@ export function DiscCounter({ player, count, isCurrentPlayer }: DiscCounterProps
         {Array.from({ length: count }, (_, i) => (
           <div key={i} className={`disc-pip ${player}`} />
         ))}
-        {Array.from({ length: 5 - count }, (_, i) => (
+        {Array.from({ length: DISCS_PER_PLAYER - count }, (_, i) => (
           <div key={`empty-${i}`} className="disc-pip empty" />
         ))}
       </div>
