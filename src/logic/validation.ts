@@ -1,5 +1,4 @@
 import type { GameState } from '../types';
-import { MAX_OFFSET } from '../constants';
 
 export function canDrop(state: GameState, col: number): boolean {
   if (state.phase !== 'playing') return false;
@@ -14,7 +13,8 @@ export function canShift(
 ): boolean {
   if (state.phase !== 'playing') return false;
   const offset = state.rowOffsets[row];
-  if (direction === 'left' && offset <= -MAX_OFFSET) return false;
-  if (direction === 'right' && offset >= MAX_OFFSET) return false;
+  const { maxOffset } = state.config;
+  if (direction === 'left' && offset <= -maxOffset) return false;
+  if (direction === 'right' && offset >= maxOffset) return false;
   return true;
 }

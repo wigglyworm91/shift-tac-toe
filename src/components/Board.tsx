@@ -1,6 +1,6 @@
 import { useRef, useLayoutEffect, useMemo } from 'react';
-import type { Cell as CellType, GameState, Board as BoardType, RowOffsets } from '../types';
-import { ROWS, COLS, CELL_WITH_GAP } from '../constants';
+import type { Cell as CellType, GameState, Board as BoardType } from '../types';
+import { CELL_WITH_GAP } from '../constants';
 import { canDrop, canShift } from '../logic/validation';
 import { Cell } from './Cell';
 import { ColumnDropTarget } from './ColumnDropTarget';
@@ -9,8 +9,8 @@ import { RowShiftControls } from './RowShiftControls';
 interface BoardProps {
   gameState: GameState;
   displayBoard: BoardType;
-  slotOffsets: RowOffsets;
-  transformOffsets: RowOffsets;
+  slotOffsets: number[];
+  transformOffsets: number[];
   enableDropAnim: boolean;
   onDrop: (col: number) => void;
   onShift: (row: number, direction: 'left' | 'right') => void;
@@ -18,15 +18,15 @@ interface BoardProps {
   disabled?: boolean;
 }
 
-// Build the 5-slot array using slotOffsets (the PRE-shift offset).
-// slotOffset 0  → board data at slots [1,2,3]
-// slotOffset -1 → board data at slots [2,3,4]
-// slotOffset +1 → board data at slots [0,1,2]
-// The CSS transform then moves the slider so the correct 3 slots show through the frame.
-function getSlots(row: CellType[], slotOffset: number): CellType[] {
-  const slots: CellType[] = [null, null, null, null, null];
-  const start = 1 - slotOffset;
-  for (let i = 0; i < COLS; i++) {
+// Build the slider slot array using slotOffsets (the PRE-shift offset).
+// slotOffset  0 → board data at slots [maxOffset .. maxOffset+cols-1]
+// slotOffset -1 → board data shifts right by 1
+// slotOffset +1 → board data shifts left by 1
+function getSlots(row: CellType[], slotOffset: number, cols: number, maxOffset: number): CellType[] {
+  const totalSlots = cols + maxOffset * 2;
+  const slots: CellType[] = Array(totalSlots).fill(null);
+  const start = maxOffset - slotOffset;
+  for (let i = 0; i < cols; i++) {
     slots[start + i] = row[i];
   }
   return slots;
@@ -43,22 +43,23 @@ export function Board({
   onShiftTransitionEnd,
   disabled = false,
 }: BoardProps) {
-  const { winningCells } = gameState;
+  const { winningCells, config } = gameState;
+  const { rows, cols, maxOffset } = config;
 
   // Detect cells that newly received a disc — only when enableDropAnim is true
   const prevBoardRef = useRef<BoardType>(displayBoard);
   const newCells = useMemo(() => {
     if (!enableDropAnim) return new Set<string>();
     const result = new Set<string>();
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
         if (!prevBoardRef.current[r][c] && displayBoard[r][c]) {
           result.add(`${r}-${c}`);
         }
       }
     }
     return result;
-  }, [displayBoard, enableDropAnim]);
+  }, [displayBoard, enableDropAnim, rows, cols]);
 
   useLayoutEffect(() => {
     prevBoardRef.current = displayBoard;
@@ -72,7 +73,7 @@ export function Board({
     <div className="board-area">
       <div className="drop-targets">
         <div className="shift-spacer" />
-        {Array.from({ length: COLS }, (_, c) => (
+        {Array.from({ length: cols }, (_, c) => (
           <ColumnDropTarget
             key={c}
             col={c}
@@ -84,12 +85,11 @@ export function Board({
       </div>
 
       <div className="board-rows">
-        {Array.from({ length: ROWS }, (_, r) => {
+        {Array.from({ length: rows }, (_, r) => {
           const slotOff = slotOffsets[r];
           const transformOff = transformOffsets[r];
-          const slots = getSlots(displayBoard[r], slotOff);
-          // transformOff drives the visible window: -(1 - transformOff) * CELL_WITH_GAP
-          const transform = `translateX(${-(1 - transformOff) * CELL_WITH_GAP}px)`;
+          const slots = getSlots(displayBoard[r], slotOff, cols, maxOffset);
+          const transform = `translateX(${-(maxOffset - transformOff) * CELL_WITH_GAP}px)`;
 
           return (
             <div key={r} className="board-row-wrapper">
@@ -111,8 +111,8 @@ export function Board({
                   }}
                 >
                   {slots.map((cell, slotIdx) => {
-                    const boardCol = slotIdx - (1 - slotOff);
-                    const inBounds = boardCol >= 0 && boardCol < COLS;
+                    const boardCol = slotIdx - (maxOffset - slotOff);
+                    const inBounds = boardCol >= 0 && boardCol < cols;
                     const winning = inBounds && isWinning(r, boardCol);
                     const isNew = inBounds && newCells.has(`${r}-${boardCol}`);
                     return (

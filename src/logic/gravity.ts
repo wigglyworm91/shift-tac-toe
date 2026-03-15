@@ -1,5 +1,4 @@
 import type { Board, Cell } from '../types';
-import { ROWS, COLS } from '../constants';
 
 function applyGravityToColumn(col: Cell[]): Cell[] {
   const discs = col.filter((c): c is NonNullable<Cell> => c !== null);
@@ -8,13 +7,14 @@ function applyGravityToColumn(col: Cell[]): Cell[] {
 }
 
 export function applyGravityAll(board: Board): Board {
-  // Extract columns, apply gravity, rebuild row-major board
-  const columns: Cell[][] = Array.from({ length: COLS }, (_, c) =>
+  const rows = board.length;
+  const cols = board[0]?.length ?? 0;
+  const columns: Cell[][] = Array.from({ length: cols }, (_, c) =>
     board.map(row => row[c])
   );
   const settled = columns.map(applyGravityToColumn);
-  return Array.from({ length: ROWS }, (_, r) =>
-    Array.from({ length: COLS }, (_, c) => settled[c][r])
+  return Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => settled[c][r])
   );
 }
 
@@ -22,8 +22,8 @@ export function applyGravityAll(board: Board): Board {
 export function applyGravityAllTracked(board: Board): { board: Board; drops: [number, number][] } {
   const newBoard = applyGravityAll(board);
   const drops: [number, number][] = [];
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < (board[0]?.length ?? 0); c++) {
       if (board[r][c] === null && newBoard[r][c] !== null) {
         drops.push([r, c]);
       }

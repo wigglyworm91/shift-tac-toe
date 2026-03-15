@@ -1,9 +1,17 @@
 export type Player = 'red' | 'black';
 export type Cell = Player | null;
 export type Board = Cell[][];
-export type RowOffsets = [number, number, number];
+export type RowOffsets = number[];
+
+export interface GameConfig {
+  rows: number;
+  cols: number;
+  winLength: number;
+  maxOffset: number;
+}
 
 export interface GameState {
+  config: GameConfig;
   board: Board;
   rowOffsets: RowOffsets;
   currentPlayer: Player;

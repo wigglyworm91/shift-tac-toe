@@ -1,33 +1,48 @@
-import type { Board, Player } from '../types';
-import { ROWS, COLS } from '../constants';
+import type { Board, Player, GameConfig } from '../types';
+import { ROWS, COLS, WIN_LENGTH } from '../constants';
 
 type Coord = [number, number];
 
-function generateLines(): Coord[][] {
+export function generateLines(rows: number, cols: number, winLength: number): Coord[][] {
   const lines: Coord[][] = [];
-  for (let r = 0; r < ROWS; r++)
-    lines.push(Array.from({ length: COLS }, (_, c) => [r, c] as Coord));
-  for (let c = 0; c < COLS; c++)
-    lines.push(Array.from({ length: ROWS }, (_, r) => [r, c] as Coord));
-  if (ROWS === COLS) {
-    lines.push(Array.from({ length: ROWS }, (_, i) => [i, i] as Coord));
-    lines.push(Array.from({ length: ROWS }, (_, i) => [i, COLS - 1 - i] as Coord));
-  }
+
+  // Rows: all winLength-length sub-runs
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c <= cols - winLength; c++)
+      lines.push(Array.from({ length: winLength }, (_, i) => [r, c + i] as Coord));
+
+  // Columns: all winLength-length sub-runs
+  for (let c = 0; c < cols; c++)
+    for (let r = 0; r <= rows - winLength; r++)
+      lines.push(Array.from({ length: winLength }, (_, i) => [r + i, c] as Coord));
+
+  // Diagonals (top-left to bottom-right)
+  for (let r = 0; r <= rows - winLength; r++)
+    for (let c = 0; c <= cols - winLength; c++)
+      lines.push(Array.from({ length: winLength }, (_, i) => [r + i, c + i] as Coord));
+
+  // Diagonals (top-right to bottom-left)
+  for (let r = 0; r <= rows - winLength; r++)
+    for (let c = winLength - 1; c < cols; c++)
+      lines.push(Array.from({ length: winLength }, (_, i) => [r + i, c - i] as Coord));
+
   return lines;
 }
 
-export const LINES: Coord[][] = generateLines();
+// Static export for backward compat (used by tests / external consumers)
+export const LINES: Coord[][] = generateLines(ROWS, COLS, WIN_LENGTH);
 
 export interface WinResult {
   winners: Player[];
   winningCells: Coord[];
 }
 
-export function checkWin(board: Board): WinResult {
+export function checkWin(board: Board, config: GameConfig): WinResult {
+  const lines = generateLines(config.rows, config.cols, config.winLength);
   const winners = new Set<Player>();
   const winningCellSet = new Set<string>();
 
-  for (const line of LINES) {
+  for (const line of lines) {
     const values = line.map(([r, c]) => board[r][c]);
     if (values[0] !== null && values.every(v => v === values[0])) {
       winners.add(values[0] as Player);

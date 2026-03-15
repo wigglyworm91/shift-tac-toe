@@ -1,20 +1,22 @@
-import type { GameState, Action, Player, Board, RowOffsets } from '../types';
-import { ROWS, COLS, DISCS_PER_PLAYER } from '../constants';
+import type { GameState, Action, Player, Board, GameConfig } from '../types';
+import { DEFAULT_CONFIG } from '../constants';
 import { applyGravityAll } from './gravity';
 import { shiftRow } from './shift';
 import { checkWin } from './winDetection';
 import { canDrop, canShift } from './validation';
 
-function emptyBoard(): Board {
-  return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+function emptyBoard(rows: number, cols: number): Board {
+  return Array.from({ length: rows }, () => Array(cols).fill(null));
 }
 
-export function initialState(firstPlayer: Player = 'red'): GameState {
+export function initialState(config: GameConfig = DEFAULT_CONFIG, firstPlayer: Player = 'red'): GameState {
+  const discsPerPlayer = Math.ceil(config.rows * config.cols / 2);
   return {
-    board: emptyBoard(),
-    rowOffsets: [0, 0, 0],
+    config,
+    board: emptyBoard(config.rows, config.cols),
+    rowOffsets: Array(config.rows).fill(0),
     currentPlayer: firstPlayer,
-    discs: { red: DISCS_PER_PLAYER, black: DISCS_PER_PLAYER },
+    discs: { red: discsPerPlayer, black: discsPerPlayer },
     phase: 'playing',
     winners: [],
     winningCells: [],
@@ -28,17 +30,18 @@ function otherPlayer(p: Player): Player {
 
 function hasMoves(state: GameState, player: Player): boolean {
   const s = { ...state, currentPlayer: player };
-  for (let c = 0; c < COLS; c++) {
+  const { rows, cols } = state.config;
+  for (let c = 0; c < cols; c++) {
     if (canDrop(s, c)) return true;
   }
-  for (let r = 0; r < ROWS; r++) {
+  for (let r = 0; r < rows; r++) {
     if (canShift(s, r, 'left') || canShift(s, r, 'right')) return true;
   }
   return false;
 }
 
 function advanceTurn(state: GameState): GameState {
-  const { winners, winningCells } = checkWin(state.board);
+  const { winners, winningCells } = checkWin(state.board, state.config);
   if (winners.length > 0) {
     return { ...state, phase: 'won', winners, winningCells };
   }
@@ -58,8 +61,9 @@ function advanceTurn(state: GameState): GameState {
 }
 
 function dropDisc(state: GameState, col: number): GameState {
+  const { rows } = state.config;
   let targetRow = -1;
-  for (let r = ROWS - 1; r >= 0; r--) {
+  for (let r = rows - 1; r >= 0; r--) {
     if (state.board[r][col] === null) {
       targetRow = r;
       break;
@@ -71,7 +75,6 @@ function dropDisc(state: GameState, col: number): GameState {
     row.map((cell, c) => (r === targetRow && c === col ? state.currentPlayer : cell))
   );
 
-  // Apply gravity after drop (disc already falls to lowest empty, but just in case)
   const settledBoard = applyGravityAll(newBoard);
 
   const newDiscs = {
@@ -93,7 +96,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       const { board, reclaimed, gravityDrops } = shiftRow(state.board, action.row, action.direction);
       const newOffsets = state.rowOffsets.map((o, i) =>
         i === action.row ? o + (action.direction === 'left' ? -1 : 1) : o
-      ) as RowOffsets;
+      );
       const newDiscs = { ...state.discs };
       for (const [player, count] of Object.entries(reclaimed) as [Player, number][]) {
         newDiscs[player] += count;
@@ -101,6 +104,6 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return advanceTurn({ ...state, board, rowOffsets: newOffsets, discs: newDiscs, lastGravityDrops: gravityDrops });
     }
     case 'RESET_GAME':
-      return initialState(action.firstPlayer);
+      return initialState(state.config, action.firstPlayer);
   }
 }

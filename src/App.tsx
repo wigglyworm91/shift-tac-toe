@@ -1,6 +1,6 @@
 import { useReducer, useState, useRef, useEffect } from 'react';
 import { trackEvent } from './analytics';
-import type { Board as BoardType, RowOffsets } from './types';
+import type { Board as BoardType } from './types';
 import { gameReducer, initialState } from './logic/gameReducer';
 import { getBestMove, type Difficulty } from './logic/ai';
 import { Board } from './components/Board';
@@ -24,7 +24,7 @@ export function App() {
   );
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gameState, dispatch] = useReducer(gameReducer, undefined, () =>
-    initialState(hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
+    initialState(undefined, hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
   );
 
   const { mpState, shareUrl, myColor, username, setUsername, opponentName,
@@ -36,11 +36,11 @@ export function App() {
 
   // slotOffsets: used by getSlots() to place board data into the 5-slot array.
   // Stays at the OLD value during animation so data stays in its original positions.
-  const [slotOffsets, setSlotOffsets] = useState<RowOffsets>([0, 0, 0]);
+  const [slotOffsets, setSlotOffsets] = useState<number[]>(() => initialState().rowOffsets);
 
   // transformOffsets: drives the CSS translateX on the slider.
   // Updated immediately on shift to trigger the CSS transition.
-  const [transformOffsets, setTransformOffsets] = useState<RowOffsets>([0, 0, 0]);
+  const [transformOffsets, setTransformOffsets] = useState<number[]>(() => initialState().rowOffsets);
 
   // Only play drop-in animation on explicit DROP actions, not after shift snaps.
   const [enableDropAnim, setEnableDropAnim] = useState(false);
@@ -166,12 +166,12 @@ export function App() {
 
     // Freeze board + slot offsets at pre-shift state so disc positions don't jump.
     setDisplayBoard(preBoard);
-    setSlotOffsets([...oldSlotOffsets] as RowOffsets);
+    setSlotOffsets([...oldSlotOffsets]);
     setEnableDropAnim(false);
 
     // Only update transformOffsets — this triggers the CSS transition.
     setTransformOffsets(prev => {
-      const next = [...prev] as RowOffsets;
+      const next = [...prev];
       next[row] = prev[row] + (direction === 'left' ? -1 : 1);
       return next;
     });
