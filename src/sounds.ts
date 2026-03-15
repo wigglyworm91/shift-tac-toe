@@ -17,7 +17,7 @@ export function playDropSound(col: number, delaySec = 0): void {
   console.log('[sound] playDropSound col:', col, 'delay:', delaySec);
   const ac = getCtx();
   const now = ac.currentTime + delaySec;
-  const duration = 0.07;
+  const duration = 0.18;
 
   const bufSize = Math.ceil(ac.sampleRate * duration);
   const buf = ac.createBuffer(1, bufSize, ac.sampleRate);
@@ -33,7 +33,7 @@ export function playDropSound(col: number, delaySec = 0): void {
   filter.Q.value = 1.8;
 
   const gain = ac.createGain();
-  gain.gain.setValueAtTime(0.45, now);
+  gain.gain.setValueAtTime(0.85, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
   const panner = ac.createStereoPanner();
@@ -153,7 +153,7 @@ export function playShiftSound(direction: 'left' | 'right'): void {
   const pan = direction === 'left' ? -0.4 : 0.4;
 
   // "ka" — sharp mid noise hit
-  const kaDuration = 0.045;
+  const kaDuration = 0.1;
   const kaBuf = ac.createBuffer(1, Math.ceil(ac.sampleRate * kaDuration), ac.sampleRate);
   const kaData = kaBuf.getChannelData(0);
   for (let i = 0; i < kaData.length; i++) kaData[i] = Math.random() * 2 - 1;
@@ -167,12 +167,12 @@ export function playShiftSound(direction: 'left' | 'right'): void {
   kaFilter.Q.value = 1.0;
 
   const kaGain = ac.createGain();
-  kaGain.gain.setValueAtTime(0.55, now);
+  kaGain.gain.setValueAtTime(0.9, now);
   kaGain.gain.exponentialRampToValueAtTime(0.001, now + kaDuration);
 
   // "chunk" — low sine sweep that decays
-  const chunkStart = now + 0.03;
-  const chunkEnd = now + 0.2;
+  const chunkStart = now + 0.05;
+  const chunkEnd = now + 0.4;
 
   const osc = ac.createOscillator();
   osc.type = 'sine';
@@ -181,7 +181,7 @@ export function playShiftSound(direction: 'left' | 'right'): void {
 
   const chunkGain = ac.createGain();
   chunkGain.gain.setValueAtTime(0.001, now);
-  chunkGain.gain.setValueAtTime(0.35, chunkStart);
+  chunkGain.gain.setValueAtTime(0.65, chunkStart);
   chunkGain.gain.exponentialRampToValueAtTime(0.001, chunkEnd);
 
   const panner = ac.createStereoPanner();
@@ -199,5 +199,5 @@ export function playShiftSound(direction: 'left' | 'right'): void {
   kaSource.start(now);
   kaSource.stop(now + kaDuration);
   osc.start(chunkStart);
-  osc.stop(chunkEnd);
+  osc.stop(chunkEnd + 0.05);
 }
