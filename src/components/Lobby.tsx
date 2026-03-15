@@ -47,6 +47,8 @@ interface LobbyProps {
   selections: LobbySelections;
   onChange: (s: LobbySelections) => void;
   onPlay: (choice: LobbyChoice) => void;
+  username: string;
+  onUsernameChange: (name: string) => void;
 }
 
 function OptionGroup<T extends string>({
@@ -106,7 +108,7 @@ function NumInput({ label, value, min, max, onChange }: {
   );
 }
 
-export function Lobby({ selections, onChange, onPlay }: LobbyProps) {
+export function Lobby({ selections, onChange, onPlay, username, onUsernameChange }: LobbyProps) {
   const { board, shifting, mode, aiDifficulty, customRows, customCols, customWinLength } = selections;
   const maxWin = Math.max(2, Math.min(customRows, customCols));
 
@@ -161,6 +163,19 @@ export function Lobby({ selections, onChange, onPlay }: LobbyProps) {
             value={aiDifficulty}
             onChange={d => onChange({ ...selections, aiDifficulty: d })}
           />
+        </div>
+        <div className={`custom-fields${mode === 'online' ? ' open' : ''}`}>
+          <div className="custom-field">
+            <span className="custom-field-label">Your name</span>
+            <input
+              className="username-input"
+              type="text"
+              placeholder="Anonymous"
+              maxLength={20}
+              value={username}
+              onChange={e => onUsernameChange(e.target.value)}
+            />
+          </div>
         </div>
       </div>
       <button className="lobby-play-btn" onClick={() => onPlay(lobbyChoiceFromSelections(selections))}>

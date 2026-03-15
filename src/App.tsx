@@ -241,6 +241,7 @@ export function App() {
       setMode('online');
       dispatch({ type: 'RESET_GAME', config: choice.config, firstPlayer: 'red' });
       setScreen('game');
+      createRoom();
       return;
     }
 
@@ -267,7 +268,7 @@ export function App() {
   if (screen === 'lobby') {
     return (
       <>
-        <Lobby selections={lobbySelections} onChange={setLobbySelections} onPlay={handleLobbyPlay} />
+        <Lobby selections={lobbySelections} onChange={setLobbySelections} onPlay={handleLobbyPlay} username={username} onUsernameChange={setUsername} />
         {footer}
         <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       </>
@@ -283,9 +284,6 @@ export function App() {
         <OnlineLobby
           mpState={mpState}
           shareUrl={shareUrl}
-          username={username}
-          onUsernameChange={setUsername}
-          onCreateRoom={createRoom}
           onDisconnect={() => {
             disconnect();
             setScreen('lobby');

@@ -4,13 +4,10 @@ import type { MpState } from './useMultiplayer';
 interface Props {
   mpState: MpState;
   shareUrl: string | null;
-  username: string;
-  onUsernameChange: (name: string) => void;
-  onCreateRoom: () => void;
   onDisconnect: () => void;
 }
 
-export function OnlineLobby({ mpState, shareUrl, username, onUsernameChange, onCreateRoom, onDisconnect }: Props) {
+export function OnlineLobby({ mpState, shareUrl, onDisconnect }: Props) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,23 +63,11 @@ export function OnlineLobby({ mpState, shareUrl, username, onUsernameChange, onC
     );
   }
 
-  // idle (default)
+  // idle — only reachable on error
   return (
     <div className="online-lobby">
-      <p className="lobby-heading">Play online</p>
       {error && <p className="lobby-error">{error}</p>}
-      <input
-        className="username-input"
-        type="text"
-        placeholder="Your name"
-        maxLength={20}
-        value={username}
-        onChange={e => onUsernameChange(e.target.value)}
-      />
-      <p className="lobby-hint">Create a room and share the link with your opponent.</p>
-      <button className="lobby-btn" onClick={() => { setError(null); onCreateRoom(); }}>
-        Create Room
-      </button>
+      <button className="lobby-btn secondary" onClick={onDisconnect}>Back to menu</button>
     </div>
   );
 }
