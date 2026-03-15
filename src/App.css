@@ -291,6 +291,41 @@ button {
   background: #ffffff33;
 }
 
+.username-input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #0d1b2a;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 200px;
+  text-align: center;
+}
+
+.username-input::placeholder {
+  color: #555;
+}
+
+.opponent-name {
+  font-size: 0.85rem;
+  color: #888;
+  letter-spacing: 0.05em;
+}
+
+/* ── Rematch ────────────────────────────────────────── */
+.rematch-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.rematch-waiting {
+  font-size: 0.9rem;
+  color: #888;
+}
+
 /* ── New Game buttons ───────────────────────────────── */
 .new-game-btns {
   display: flex;

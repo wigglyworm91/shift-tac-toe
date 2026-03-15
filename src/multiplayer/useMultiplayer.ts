@@ -3,15 +3,23 @@ import type { Player, Action } from '../types';
 import type { ClientMessage, ServerMessage } from './protocol';
 
 export type MpState = 'idle' | 'connecting' | 'waiting' | 'playing' | 'opponent_left';
+export type RematchState = 'none' | 'offered' | 'received';
 
 export interface UseMultiplayerReturn {
   mpState: MpState;
   shareUrl: string | null;
   myColor: Player | null;
+  username: string;
+  setUsername: (name: string) => void;
+  opponentName: string | null;
   createRoom: () => void;
   sendAction: (action: Action) => void;
   disconnect: () => void;
   lastOpponentAction: Action | null;
+  rematchState: RematchState;
+  rematchAccepted: number;
+  offerRematch: () => void;
+  acceptRematch: () => void;
 }
 
 function getRoomCodeFromUrl(): string | null {
@@ -33,6 +41,18 @@ export function useMultiplayer(): UseMultiplayerReturn {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [myColor, setMyColor] = useState<Player | null>(null);
   const [lastOpponentAction, setLastOpponentAction] = useState<Action | null>(null);
+  const [rematchState, setRematchState] = useState<RematchState>('none');
+  const [rematchAccepted, setRematchAccepted] = useState(0);
+
+  const [username, setUsernameState] = useState<string>(
+    () => localStorage.getItem('shift-tac-toe-username') ?? ''
+  );
+  const [opponentName, setOpponentName] = useState<string | null>(null);
+
+  const setUsername = useCallback((name: string) => {
+    localStorage.setItem('shift-tac-toe-username', name);
+    setUsernameState(name);
+  }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -73,15 +93,31 @@ export function useMultiplayer(): UseMultiplayerReturn {
         setMpState('waiting');
 
       } else if (msg.type === 'GAME_START') {
-        console.log('[WS] game start, playing as', msg.yourColor);
+        console.log('[WS] game start, playing as', msg.yourColor, 'vs', msg.opponentName);
         setMyColor(msg.yourColor);
+        setOpponentName(msg.opponentName);
         setMpState('playing');
 
       } else if (msg.type === 'PLAYER_ACTION') {
         setLastOpponentAction(msg.action);
 
+      } else if (msg.type === 'REMATCH_OFFER') {
+        // If we already offered, both clicked simultaneously — treat as mutual accept
+        setRematchState(prev => {
+          if (prev === 'offered') {
+            setRematchAccepted(n => n + 1);
+            return 'none';
+          }
+          return 'received';
+        });
+
+      } else if (msg.type === 'REMATCH_ACCEPT') {
+        setRematchState('none');
+        setRematchAccepted(n => n + 1);
+
       } else if (msg.type === 'OPPONENT_LEFT') {
         console.log('[WS] opponent left');
+        setRematchState('none');
         setMpState('opponent_left');
 
       } else if (msg.type === 'ERROR') {
@@ -100,20 +136,33 @@ export function useMultiplayer(): UseMultiplayerReturn {
 
   const createRoom = useCallback(() => {
     console.log('[WS] creating room');
+    const name = username || 'Anonymous';
     connect(() => {
-      send({ type: 'CREATE_ROOM' });
+      send({ type: 'CREATE_ROOM', username: name });
     });
-  }, [connect, send]);
+  }, [connect, send, username]);
 
   const joinRoom = useCallback((roomCode: string) => {
     console.log('[WS] joining room', roomCode);
+    const name = username || 'Anonymous';
     connect(() => {
-      send({ type: 'JOIN_ROOM', roomCode });
+      send({ type: 'JOIN_ROOM', roomCode, username: name });
     });
-  }, [connect, send]);
+  }, [connect, send, username]);
 
   const sendAction = useCallback((action: Action) => {
     send({ type: 'PLAYER_ACTION', action });
+  }, [send]);
+
+  const offerRematch = useCallback(() => {
+    setRematchState('offered');
+    send({ type: 'REMATCH_OFFER' });
+  }, [send]);
+
+  const acceptRematch = useCallback(() => {
+    setRematchState('none');
+    setRematchAccepted(n => n + 1);
+    send({ type: 'REMATCH_ACCEPT' });
   }, [send]);
 
   const disconnect = useCallback(() => {
@@ -123,10 +172,12 @@ export function useMultiplayer(): UseMultiplayerReturn {
     setMpState('idle');
     setShareUrl(null);
     setMyColor(null);
+    setOpponentName(null);
     setLastOpponentAction(null);
+    setRematchState('none');
     // Navigate back to root
     history.pushState(null, '', import.meta.env.BASE_URL as string);
-  }, []);
+  }, [send]);
 
   // On mount: if URL contains a room code, auto-join
   useEffect(() => {
@@ -143,5 +194,5 @@ export function useMultiplayer(): UseMultiplayerReturn {
     return () => window.removeEventListener('popstate', onPopState);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { mpState, shareUrl, myColor, createRoom, sendAction, disconnect, lastOpponentAction };
+  return { mpState, shareUrl, myColor, username, setUsername, opponentName, createRoom, sendAction, disconnect, lastOpponentAction, rematchState, rematchAccepted, offerRematch, acceptRematch };
 }

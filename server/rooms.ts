@@ -4,6 +4,7 @@ export interface Room {
   code: string;
   redSocket: WebSocket | null;
   blackSocket: WebSocket | null;
+  creatorName: string;
 }
 
 const rooms = new Map<string, Room>();
@@ -16,12 +17,12 @@ function generateCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
-export function createRoom(socket: WebSocket): string {
+export function createRoom(socket: WebSocket, creatorName: string): string {
   let code = generateCode();
   // Extremely unlikely collision, but be safe
   while (rooms.has(code)) code = generateCode();
 
-  const room: Room = { code, redSocket: socket, blackSocket: null };
+  const room: Room = { code, redSocket: socket, blackSocket: null, creatorName };
   rooms.set(code, room);
   socketToRoom.set(socket, room);
   return code;

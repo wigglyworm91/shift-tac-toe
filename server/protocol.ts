@@ -12,11 +12,13 @@ export type Action =
 
 export interface CreateRoomMsg {
   type: 'CREATE_ROOM';
+  username: string;
 }
 
 export interface JoinRoomMsg {
   type: 'JOIN_ROOM';
   roomCode: string;
+  username: string;
 }
 
 export interface PlayerActionMsg {
@@ -24,7 +26,15 @@ export interface PlayerActionMsg {
   action: Action;
 }
 
-export type ClientMessage = CreateRoomMsg | JoinRoomMsg | PlayerActionMsg;
+export interface RematchOfferMsg {
+  type: 'REMATCH_OFFER';
+}
+
+export interface RematchAcceptMsg {
+  type: 'REMATCH_ACCEPT';
+}
+
+export type ClientMessage = CreateRoomMsg | JoinRoomMsg | PlayerActionMsg | RematchOfferMsg | RematchAcceptMsg;
 
 // ── Server → Client ──────────────────────────────────────────────────────────
 
@@ -36,6 +46,7 @@ export interface RoomCreatedMsg {
 export interface GameStartMsg {
   type: 'GAME_START';
   yourColor: Player;
+  opponentName: string;
 }
 
 export interface PlayerActionRelayMsg {
@@ -52,9 +63,19 @@ export interface OpponentLeftMsg {
   type: 'OPPONENT_LEFT';
 }
 
+export interface RematchOfferRelayMsg {
+  type: 'REMATCH_OFFER';
+}
+
+export interface RematchAcceptRelayMsg {
+  type: 'REMATCH_ACCEPT';
+}
+
 export type ServerMessage =
   | RoomCreatedMsg
   | GameStartMsg
   | PlayerActionRelayMsg
   | ErrorMsg
-  | OpponentLeftMsg;
+  | OpponentLeftMsg
+  | RematchOfferRelayMsg
+  | RematchAcceptRelayMsg;

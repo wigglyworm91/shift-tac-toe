@@ -27,8 +27,9 @@ export function App() {
     initialState(hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
   );
 
-  const { mpState, shareUrl, myColor, createRoom, sendAction, disconnect, lastOpponentAction } =
-    useMultiplayer();
+  const { mpState, shareUrl, myColor, username, setUsername, opponentName,
+    createRoom, sendAction, disconnect, lastOpponentAction,
+    rematchState, rematchAccepted, offerRematch, acceptRematch } = useMultiplayer();
 
   // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
   const [displayBoard, setDisplayBoard] = useState<BoardType>(() => initialState().board);
@@ -104,6 +105,13 @@ export function App() {
     if (mpState === 'playing') handleReset(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mpState]);
+
+  // Online: reset board when rematch is agreed (counter increments on both sides).
+  useEffect(() => {
+    if (rematchAccepted === 0) return;
+    handleReset(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rematchAccepted]);
 
   // Online: apply incoming opponent actions.
   useEffect(() => {
@@ -230,6 +238,8 @@ export function App() {
         <OnlineLobby
           mpState={mpState}
           shareUrl={shareUrl}
+          username={username}
+          onUsernameChange={setUsername}
           onCreateRoom={createRoom}
           onDisconnect={() => {
             disconnect();
@@ -261,6 +271,10 @@ export function App() {
             isOnlineOpponentTurn={isOnlineOpponentTurn}
           />
 
+          {mode === 'online' && opponentName && (
+            <p className="opponent-name">vs. {opponentName}</p>
+          )}
+
           <Board
             gameState={gameState}
             displayBoard={displayBoard}
@@ -272,6 +286,20 @@ export function App() {
             onShiftTransitionEnd={handleShiftTransitionEnd}
             disabled={boardDisabled}
           />
+
+          {mode === 'online' && gameState.phase !== 'playing' && (
+            <div className="rematch-row">
+              {rematchState === 'none' && (
+                <button className="lobby-btn" onClick={offerRematch}>Offer Rematch</button>
+              )}
+              {rematchState === 'offered' && (
+                <p className="rematch-waiting">Waiting for opponent…</p>
+              )}
+              {rematchState === 'received' && (
+                <button className="lobby-btn" onClick={acceptRematch}>Accept Rematch</button>
+              )}
+            </div>
+          )}
         </>
       )}
 

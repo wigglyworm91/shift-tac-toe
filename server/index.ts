@@ -20,8 +20,8 @@ wss.on('connection', (socket) => {
     }
 
     if (msg.type === 'CREATE_ROOM') {
-      const code = createRoom(socket);
-      log(`room created: ${code}`);
+      const code = createRoom(socket, msg.username);
+      log(`room created: ${code} by "${msg.username}"`);
       send(socket, { type: 'ROOM_CREATED', roomCode: code });
 
     } else if (msg.type === 'JOIN_ROOM') {
@@ -37,9 +37,9 @@ wss.on('connection', (socket) => {
       const creatorColor  = creatorGetsRed ? 'red'   : 'black';
       const joinerColor   = creatorGetsRed ? 'black' : 'red';
 
-      log(`game start: ${room.code} (creator=${creatorColor}, joiner=${joinerColor})`);
-      if (room.redSocket) send(room.redSocket,   { type: 'GAME_START', yourColor: creatorColor });
-      send(socket,                                 { type: 'GAME_START', yourColor: joinerColor });
+      log(`game start: ${room.code} "${room.creatorName}" (${creatorColor}) vs "${msg.username}" (${joinerColor})`);
+      if (room.redSocket) send(room.redSocket, { type: 'GAME_START', yourColor: creatorColor, opponentName: msg.username });
+      send(socket,                              { type: 'GAME_START', yourColor: joinerColor, opponentName: room.creatorName });
 
     } else if (msg.type === 'PLAYER_ACTION') {
       const room = getRoomForSocket(socket);
@@ -47,6 +47,13 @@ wss.on('connection', (socket) => {
       const opponent = socket === room.redSocket ? room.blackSocket : room.redSocket;
       if (opponent) send(opponent, { type: 'PLAYER_ACTION', action: msg.action });
       if (msg.action.type === 'RESET_GAME') log(`game reset: ${room.code}`);
+
+    } else if (msg.type === 'REMATCH_OFFER' || msg.type === 'REMATCH_ACCEPT') {
+      const room = getRoomForSocket(socket);
+      if (!room) return;
+      const opponent = socket === room.redSocket ? room.blackSocket : room.redSocket;
+      if (opponent) send(opponent, { type: msg.type });
+      log(`${msg.type.toLowerCase().replace('_', ' ')}: ${room.code}`);
     }
   });
 

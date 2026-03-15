@@ -5,9 +5,12 @@ A 3x3 Connect-Four variant built with React + TypeScript + Vite.
 ## Commands
 
 ```bash
-npm run dev      # start dev server
-npm run test     # run Vitest tests
-npm run build    # typecheck + build
+npm run dev          # start Vite + WebSocket server concurrently
+npm run dev:client   # Vite only
+npm run dev:server   # WebSocket server only (tsx watch)
+npm run test         # run Vitest tests
+npm run build        # typecheck + build frontend
+npm run build:server # compile server to dist-server/
 ```
 
 ## Game Rules
@@ -46,7 +49,11 @@ npm run build    # typecheck + build
 
 **Row animation**: `displayBoard` and `slotOffsets` are frozen at shift start; `transformOffsets` drives the CSS transition. Board snaps to `gameState` after `transitionend`.
 
-**Game modes**: `mode: '1p' | '2p'` in App state. AI always plays black. Board and shift controls are `disabled` during AI turn.
+**Game modes**: `mode: '1p' | '2p' | 'online'` in App state. AI always plays black. Board and shift controls are `disabled` during AI turn or opponent's online turn.
+
+**Online multiplayer**: action-relay architecture — the server never runs game logic. Both clients run `gameReducer` independently; the server just forwards actions from one socket to the other. Room codes are in the URL (`/game/XKCD42`). Colors are randomly assigned at join time. See `src/multiplayer/` for the hook and lobby component, `server/` for the WebSocket server.
+
+**Rematch flow**: after a game ends online, either player can click "Offer Rematch"; the other sees "Accept Rematch". On accept, both boards reset via the `rematchAccepted` counter in `useMultiplayer` (App.tsx watches it and calls `handleReset`). If both offer simultaneously, it's treated as a mutual accept.
 
 ## Deployment
 
@@ -60,7 +67,9 @@ docker compose down             # stop
 
 The `BASE_URL` build arg (default `/shift-tac-toe/`) is passed to `vite build --base` so asset paths are correct under the subpath. It is set in `docker-compose.yml`. The host port is controlled by the `PORT` env var (default `5780`).
 
-**Apache config** (`/etc/apache2/sites-available/`): requires `mod_proxy` and `mod_proxy_http` (`a2enmod proxy proxy_http`). ProxyPass forwards `/shift-tac-toe` to `http://localhost:5780/`.
+**Apache config** (`/etc/apache2/sites-available/`): requires `mod_proxy`, `mod_proxy_http`, and `mod_proxy_wstunnel`. ProxyPass forwards `/shift-tac-toe` to `http://localhost:5780/`. WebSocket connections to `/shift-tac-toe/ws` must be proxied with `ws://` scheme (not `http://`) so Apache uses the tunnel module — this must appear before the main ProxyPass directive.
+
+The WebSocket server runs as a separate Docker service (`gameserver`) on port 8080, internal to the Docker network. nginx proxies `/ws` → `gameserver:8080`. The client connects to `wss://host/BASE_URL/ws` (using `import.meta.env.BASE_URL` so it works at any subpath).
 
 ## AI
 
