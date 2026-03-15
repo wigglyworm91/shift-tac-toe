@@ -385,6 +385,89 @@ button {
   outline: 2px solid #ffffff66;
 }
 
+.custom-fields {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 250ms ease;
+}
+
+.custom-fields.open {
+  max-height: 120px;
+}
+
+.custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.custom-field-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: #666;
+}
+
+.custom-field-stepper {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid #333;
+  overflow: hidden;
+}
+
+.custom-field-input {
+  width: 48px;
+  padding: 8px 6px;
+  border: none;
+  background: #0d1b2a;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  text-align: center;
+}
+
+.custom-field-input:focus { outline: none; }
+
+/* hide browser spin buttons */
+.custom-field-input::-webkit-outer-spin-button,
+.custom-field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.custom-field-input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+.custom-field-arrows {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #333;
+}
+
+.custom-arrow-btn {
+  width: 28px;
+  height: 20px;
+  font-size: 0.55rem;
+  line-height: 1;
+  background: #0d1b2a;
+  color: #888;
+  transition: background 0.1s, color 0.1s;
+}
+
+.custom-arrow-btn + .custom-arrow-btn {
+  border-top: 1px solid #333;
+}
+
+.custom-arrow-btn:not(:disabled):hover {
+  background: #ffffff18;
+  color: #fff;
+}
+
+.custom-arrow-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
 .lobby-play-btn {
   padding: 14px 48px;
   border-radius: 10px;

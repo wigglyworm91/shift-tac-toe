@@ -30,6 +30,7 @@ export function App() {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [lobbySelections, setLobbySelections] = useState<LobbySelections>({
     board: '3x3', shifting: 'once', mode: '1p-easy',
+    customRows: 4, customCols: 4, customWinLength: 3,
   });
   const [gameState, dispatch] = useReducer(gameReducer, undefined, () =>
     initialState(undefined, hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
