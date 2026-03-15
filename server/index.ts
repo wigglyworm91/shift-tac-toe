@@ -21,6 +21,7 @@ wss.on('connection', (socket) => {
 
     if (msg.type === 'CREATE_ROOM') {
       const code = createRoom(socket);
+      log(`room created: ${code}`);
       send(socket, { type: 'ROOM_CREATED', roomCode: code });
 
     } else if (msg.type === 'JOIN_ROOM') {
@@ -36,6 +37,7 @@ wss.on('connection', (socket) => {
       const creatorColor  = creatorGetsRed ? 'red'   : 'black';
       const joinerColor   = creatorGetsRed ? 'black' : 'red';
 
+      log(`game start: ${room.code} (creator=${creatorColor}, joiner=${joinerColor})`);
       if (room.redSocket) send(room.redSocket,   { type: 'GAME_START', yourColor: creatorColor });
       send(socket,                                 { type: 'GAME_START', yourColor: joinerColor });
 
@@ -44,6 +46,7 @@ wss.on('connection', (socket) => {
       if (!room) return;
       const opponent = socket === room.redSocket ? room.blackSocket : room.redSocket;
       if (opponent) send(opponent, { type: 'PLAYER_ACTION', action: msg.action });
+      if (msg.action.type === 'RESET_GAME') log(`game reset: ${room.code}`);
     }
   });
 
@@ -51,7 +54,10 @@ wss.on('connection', (socket) => {
     const room = getRoomForSocket(socket);
     if (!room) return;
     const opponent = socket === room.redSocket ? room.blackSocket : room.redSocket;
-    if (opponent) send(opponent, { type: 'OPPONENT_LEFT' });
+    if (opponent) {
+      log(`player abandoned: ${room.code}`);
+      send(opponent, { type: 'OPPONENT_LEFT' });
+    }
     removeRoom(room.code);
   });
 });
@@ -60,4 +66,8 @@ function send(socket: WebSocket, msg: ServerMessage): void {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(msg));
   }
+}
+
+function log(msg: string): void {
+  console.log(`[${new Date().toISOString()}] ${msg}`);
 }

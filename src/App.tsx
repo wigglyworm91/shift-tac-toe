@@ -1,4 +1,5 @@
 import { useReducer, useState, useRef, useEffect } from 'react';
+import { trackEvent } from './analytics';
 import type { Board as BoardType, RowOffsets } from './types';
 import { gameReducer, initialState } from './logic/gameReducer';
 import { getBestMove, type Difficulty } from './logic/ai';
@@ -110,6 +111,23 @@ export function App() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastOpponentAction]);
+
+  // Analytics: track game start and end.
+  const prevPhaseRef = useRef<typeof gameState.phase | null>(null);
+  useEffect(() => {
+    if (gameState.phase === prevPhaseRef.current) return;
+    prevPhaseRef.current = gameState.phase;
+
+    if (gameState.phase === 'playing') {
+      trackEvent('game_start', { mode, ...(mode === '1p' ? { difficulty } : {}) });
+    } else if (gameState.phase === 'won' || gameState.phase === 'draw') {
+      const result = gameState.phase === 'draw' ? 'draw'
+        : gameState.winners.length === 2 ? 'both'
+        : gameState.winners[0];
+      trackEvent('game_end', { mode, result });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.phase]);
 
   const isAiTurn = mode === '1p' && gameState.currentPlayer === 'black' && gameState.phase === 'playing';
   const isOnlineOpponentTurn = mode === 'online' && myColor !== null && gameState.currentPlayer !== myColor;

@@ -66,12 +66,14 @@ export function useMultiplayer(): UseMultiplayerReturn {
       }
 
       if (msg.type === 'ROOM_CREATED') {
+        console.log('[WS] room created', msg.roomCode);
         const url = makeShareUrl(msg.roomCode);
         setShareUrl(url);
         history.pushState(null, '', `${import.meta.env.BASE_URL as string}game/${msg.roomCode}`);
         setMpState('waiting');
 
       } else if (msg.type === 'GAME_START') {
+        console.log('[WS] game start, playing as', msg.yourColor);
         setMyColor(msg.yourColor);
         setMpState('playing');
 
@@ -79,6 +81,7 @@ export function useMultiplayer(): UseMultiplayerReturn {
         setLastOpponentAction(msg.action);
 
       } else if (msg.type === 'OPPONENT_LEFT') {
+        console.log('[WS] opponent left');
         setMpState('opponent_left');
 
       } else if (msg.type === 'ERROR') {
@@ -96,12 +99,14 @@ export function useMultiplayer(): UseMultiplayerReturn {
   }, []);
 
   const createRoom = useCallback(() => {
+    console.log('[WS] creating room');
     connect(() => {
       send({ type: 'CREATE_ROOM' });
     });
   }, [connect, send]);
 
   const joinRoom = useCallback((roomCode: string) => {
+    console.log('[WS] joining room', roomCode);
     connect(() => {
       send({ type: 'JOIN_ROOM', roomCode });
     });
@@ -112,6 +117,7 @@ export function useMultiplayer(): UseMultiplayerReturn {
   }, [send]);
 
   const disconnect = useCallback(() => {
+    console.log('[WS] disconnecting');
     wsRef.current?.close();
     wsRef.current = null;
     setMpState('idle');
