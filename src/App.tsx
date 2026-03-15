@@ -99,6 +99,12 @@ export function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
 
+  // Online: reset the board when a new online game starts.
+  useEffect(() => {
+    if (mpState === 'playing') handleReset(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mpState]);
+
   // Online: apply incoming opponent actions.
   useEffect(() => {
     if (!lastOpponentAction) return;
@@ -211,8 +217,9 @@ export function App() {
   }
 
   function handleOnlineMode() {
+    if (mode === 'online') disconnect();
     setMode('online');
-    handleReset(false);
+    // Don't reset here — reset happens when the online game actually starts (see mpState effect below)
   }
 
   return (
@@ -296,6 +303,7 @@ export function App() {
         <button
           className={`new-game-btn${mode === 'online' ? ' active' : ''}`}
           onClick={handleOnlineMode}
+          disabled={mode === 'online' && gameState.phase === 'playing'}
         >
           Online
         </button>

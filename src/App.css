@@ -316,3 +316,8 @@ button {
   background: #ffffff44;
   outline: 2px solid #ffffff88;
 }
+
+.new-game-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
