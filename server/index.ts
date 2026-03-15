@@ -83,6 +83,7 @@ wss.on('connection', (socket: WebSocket) => {
       const opponent = socket === room.redSocket ? room.blackSocket : room.redSocket;
       if (opponent) send(opponent, { type: 'PLAYER_ACTION', action: msg.action });
       if (msg.action.type === 'RESET_GAME') log(`game reset: ${room.code}`);
+      if (msg.action.type === 'RESIGN') log(`resign: ${room.code} (loser: ${msg.action.loser})`);
 
     } else if (msg.type === 'REMATCH_OFFER' || msg.type === 'REMATCH_ACCEPT') {
       const room = getRoomForSocket(socket);

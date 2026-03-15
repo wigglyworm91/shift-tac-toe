@@ -498,7 +498,12 @@ button {
 
 .rules-close-btn:hover { background: #ffffff33; }
 
-/* ── Back button ────────────────────────────────────── */
+/* ── In-game buttons ────────────────────────────────── */
+.game-btns {
+  display: flex;
+  gap: 8px;
+}
+
 .back-btn {
   padding: 8px 16px;
   border-radius: 8px;

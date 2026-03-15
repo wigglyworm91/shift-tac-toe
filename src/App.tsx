@@ -6,7 +6,7 @@ import { getBestMove, type Difficulty } from './logic/ai';
 import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
-import { Lobby, type LobbyChoice } from './components/Lobby';
+import { Lobby, type LobbyChoice, type LobbySelections } from './components/Lobby';
 import { RulesModal } from './components/RulesModal';
 import { playDropSound, playShiftSound, playWinSound, playLoseSound, playDrawSound, playGameStartSound } from './sounds';
 import { useMultiplayer } from './multiplayer/useMultiplayer';
@@ -28,6 +28,9 @@ export function App() {
   );
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [lobbySelections, setLobbySelections] = useState<LobbySelections>({
+    board: '3x3', shifting: 'once', mode: '1p-easy',
+  });
   const [gameState, dispatch] = useReducer(gameReducer, undefined, () =>
     initialState(undefined, hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
   );
@@ -139,6 +142,8 @@ export function App() {
       shiftAnimatingRef.current = false;
       animatingRowRef.current = null;
       aiThinkingRef.current = false;
+    } else if (lastOpponentAction.type === 'RESIGN') {
+      dispatch({ type: 'RESIGN', loser: lastOpponentAction.loser });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastOpponentAction]);
@@ -268,7 +273,7 @@ export function App() {
   if (screen === 'lobby') {
     return (
       <>
-        <Lobby onPlay={handleLobbyPlay} />
+        <Lobby selections={lobbySelections} onChange={setLobbySelections} onPlay={handleLobbyPlay} />
         {footer}
         <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       </>
@@ -348,9 +353,22 @@ export function App() {
         </>
       )}
 
-      <button className="back-btn" onClick={handleBackToLobby}>
-        ← New Game
-      </button>
+      <div className="game-btns">
+        <button className="back-btn" onClick={handleBackToLobby}>← New Game</button>
+        {mode === 'online' ? (
+          <button
+            className="back-btn"
+            disabled={gameState.phase !== 'playing'}
+            onClick={() => {
+              if (!myColor || gameState.phase !== 'playing') return;
+              dispatch({ type: 'RESIGN', loser: myColor });
+              sendAction({ type: 'RESIGN', loser: myColor });
+            }}
+          >Resign</button>
+        ) : (
+          <button className="back-btn" onClick={() => handleReset()}>Restart</button>
+        )}
+      </div>
     </div>
     {footer}
     <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />

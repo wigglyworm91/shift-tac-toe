@@ -1,17 +1,16 @@
-import { useState } from 'react';
 import type { GameConfig } from '../types';
 import type { Difficulty } from '../logic/ai';
 
-type BoardKey = '3x3' | '6x7';
-type ShiftKey = 'off' | 'once' | 'unlimited';
-type ModeKey = '2p' | '1p-easy' | '1p-hard' | '1p-impossible' | 'online';
+export type BoardKey = '3x3' | '6x7';
+export type ShiftKey = 'off' | 'once' | 'unlimited';
+export type ModeKey = '2p' | '1p-easy' | '1p-hard' | '1p-impossible' | 'online';
 
-const BOARD_CONFIGS: Record<BoardKey, Omit<GameConfig, 'maxOffset'>> = {
+export const BOARD_CONFIGS: Record<BoardKey, Omit<GameConfig, 'maxOffset'>> = {
   '3x3': { rows: 3, cols: 3, winLength: 3 },
   '6x7': { rows: 6, cols: 7, winLength: 4 },
 };
 
-const MAX_OFFSETS: Record<ShiftKey, number> = {
+export const MAX_OFFSETS: Record<ShiftKey, number> = {
   off:       0,
   once:      1,
   unlimited: 1000,
@@ -22,7 +21,22 @@ export type LobbyChoice =
   | { config: GameConfig; mode: '1p'; difficulty: Difficulty }
   | { config: GameConfig; mode: 'online' };
 
+export interface LobbySelections {
+  board: BoardKey;
+  shifting: ShiftKey;
+  mode: ModeKey;
+}
+
+export function lobbyChoiceFromSelections(s: LobbySelections): LobbyChoice {
+  const config: GameConfig = { ...BOARD_CONFIGS[s.board], maxOffset: MAX_OFFSETS[s.shifting] };
+  if (s.mode === '2p') return { config, mode: '2p' };
+  if (s.mode === 'online') return { config, mode: 'online' };
+  return { config, mode: '1p', difficulty: s.mode.slice(3) as Difficulty };
+}
+
 interface LobbyProps {
+  selections: LobbySelections;
+  onChange: (s: LobbySelections) => void;
   onPlay: (choice: LobbyChoice) => void;
 }
 
@@ -55,22 +69,8 @@ function OptionGroup<T extends string>({
   );
 }
 
-export function Lobby({ onPlay }: LobbyProps) {
-  const [board, setBoard] = useState<BoardKey>('3x3');
-  const [shifting, setShifting] = useState<ShiftKey>('once');
-  const [mode, setMode] = useState<ModeKey>('1p-easy');
-
-  function handlePlay() {
-    const config: GameConfig = { ...BOARD_CONFIGS[board], maxOffset: MAX_OFFSETS[shifting] };
-    if (mode === '2p') {
-      onPlay({ config, mode: '2p' });
-    } else if (mode === 'online') {
-      onPlay({ config, mode: 'online' });
-    } else {
-      const difficulty = mode.slice(3) as Difficulty; // '1p-easy' → 'easy'
-      onPlay({ config, mode: '1p', difficulty });
-    }
-  }
+export function Lobby({ selections, onChange, onPlay }: LobbyProps) {
+  const { board, shifting, mode } = selections;
 
   return (
     <div className="pre-lobby">
@@ -83,7 +83,7 @@ export function Lobby({ onPlay }: LobbyProps) {
             { key: '6x7', label: 'Connect Four' },
           ]}
           value={board}
-          onChange={setBoard}
+          onChange={b => onChange({ ...selections, board: b })}
         />
         <OptionGroup
           label="Shifting"
@@ -93,22 +93,22 @@ export function Lobby({ onPlay }: LobbyProps) {
             { key: 'unlimited', label: 'Unlimited' },
           ]}
           value={shifting}
-          onChange={setShifting}
+          onChange={s => onChange({ ...selections, shifting: s })}
         />
         <OptionGroup
           label="Mode"
           options={[
-            { key: '2p',          label: 'Local' },
-            { key: '1p-easy',     label: 'Easy' },
-            { key: '1p-hard',     label: 'Hard' },
+            { key: '2p',            label: 'Local' },
+            { key: '1p-easy',       label: 'Easy' },
+            { key: '1p-hard',       label: 'Hard' },
             { key: '1p-impossible', label: 'Impossible' },
-            { key: 'online',      label: 'Online' },
+            { key: 'online',        label: 'Online' },
           ]}
           value={mode}
-          onChange={setMode}
+          onChange={m => onChange({ ...selections, mode: m })}
         />
       </div>
-      <button className="lobby-play-btn" onClick={handlePlay}>
+      <button className="lobby-play-btn" onClick={() => onPlay(lobbyChoiceFromSelections(selections))}>
         Play
       </button>
     </div>
