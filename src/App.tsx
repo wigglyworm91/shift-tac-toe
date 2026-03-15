@@ -23,7 +23,7 @@ function hasRoomCodeInUrl(): boolean {
 export function App() {
   // 'lobby' | 'game' — skip lobby if joining via URL room code
   const [screen, setScreen] = useState<'lobby' | 'game'>('game');
-  const [mode, setMode] = useState<'1p' | '2p' | 'online'>(() =>
+  const [mode, setMode] = useState<'0p' | '1p' | '2p' | 'online'>(() =>
     hasRoomCodeInUrl() ? 'online' : '1p'
   );
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
@@ -78,34 +78,27 @@ export function App() {
     }
   }, [gameState.board, gameState.rowOffsets]);
 
-  // AI: trigger a move when it's black's turn in 1P mode.
+  // AI: trigger a move when it's the AI's turn (1p = black only; 0p = both players).
   const aiThinkingRef = useRef(false);
   useEffect(() => {
-    console.log('[AI effect]', {
-      mode,
-      phase: gameState.phase,
-      currentPlayer: gameState.currentPlayer,
-      shiftAnimating: shiftAnimatingRef.current,
-      aiThinking: aiThinkingRef.current,
-    });
+    const isAiMove = (mode === '1p' && gameState.currentPlayer === 'black') || mode === '0p';
     if (
-      mode !== '1p' ||
+      !isAiMove ||
       gameState.phase !== 'playing' ||
-      gameState.currentPlayer !== 'black' ||
       shiftAnimatingRef.current ||
       aiThinkingRef.current
     ) return;
 
-    console.log('[AI] scheduling move, difficulty:', difficulty);
     aiThinkingRef.current = true;
     const timer = setTimeout(() => {
-      const action = getBestMove(gameState, difficulty);
+      const moveDifficulty = mode === '0p' ? 'impossible' : difficulty;
+      const action = getBestMove(gameState, moveDifficulty);
       aiThinkingRef.current = false;
       console.log('[AI] got action:', action);
       if (!action) return;
       if (action.type === 'DROP_DISC') handleDrop(action.col);
       else if (action.type === 'SHIFT_ROW') handleShift(action.row, action.direction);
-    }, 500);
+    }, mode === '0p' ? 300 : 500);
     return () => { clearTimeout(timer); aiThinkingRef.current = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
@@ -175,7 +168,7 @@ export function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.phase]);
 
-  const isAiTurn = mode === '1p' && gameState.currentPlayer === 'black' && gameState.phase === 'playing';
+  const isAiTurn = (mode === '1p' && gameState.currentPlayer === 'black' || mode === '0p') && gameState.phase === 'playing';
   const isOnlineOpponentTurn = mode === 'online' && myColor !== null && gameState.currentPlayer !== myColor;
   const boardDisabled = isAiTurn || isOnlineOpponentTurn;
 
@@ -251,7 +244,7 @@ export function App() {
       return;
     }
 
-    const firstPlayer = choice.mode === '1p' ? randomPlayer() : 'red';
+    const firstPlayer = (choice.mode === '1p' || choice.mode === '0p') ? randomPlayer() : 'red';
     if (mode === 'online') disconnect();
     if (choice.mode === '1p') setDifficulty(choice.difficulty);
     setMode(choice.mode);

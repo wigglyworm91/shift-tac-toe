@@ -3,7 +3,7 @@ import type { Difficulty } from '../logic/ai';
 
 export type BoardKey = '3x3' | '6x7' | 'custom';
 export type ShiftKey = 'off' | 'once' | 'unlimited';
-export type ModeKey = '2p' | '1p-easy' | '1p-hard' | '1p-impossible' | 'online';
+export type ModeKey = '2p' | '1p-easy' | '1p-hard' | '1p-impossible' | '0p' | 'online';
 
 export const BOARD_CONFIGS: Record<Exclude<BoardKey, 'custom'>, Omit<GameConfig, 'maxOffset'>> = {
   '3x3': { rows: 3, cols: 3, winLength: 3 },
@@ -19,6 +19,7 @@ export const MAX_OFFSETS: Record<ShiftKey, number> = {
 export type LobbyChoice =
   | { config: GameConfig; mode: '2p' }
   | { config: GameConfig; mode: '1p'; difficulty: Difficulty }
+  | { config: GameConfig; mode: '0p' }
   | { config: GameConfig; mode: 'online' };
 
 export interface LobbySelections {
@@ -37,6 +38,7 @@ export function lobbyChoiceFromSelections(s: LobbySelections): LobbyChoice {
   const config: GameConfig = { ...base, maxOffset: MAX_OFFSETS[s.shifting] };
   if (s.mode === '2p') return { config, mode: '2p' };
   if (s.mode === 'online') return { config, mode: 'online' };
+  if (s.mode === '0p') return { config, mode: '0p' };
   return { config, mode: '1p', difficulty: s.mode.slice(3) as Difficulty };
 }
 
@@ -143,6 +145,7 @@ export function Lobby({ selections, onChange, onPlay }: LobbyProps) {
             { key: '1p-easy',       label: 'Easy' },
             { key: '1p-hard',       label: 'Hard' },
             { key: '1p-impossible', label: 'Impossible' },
+            { key: '0p',            label: 'AI vs AI' },
             { key: 'online',        label: 'Online' },
           ]}
           value={mode}

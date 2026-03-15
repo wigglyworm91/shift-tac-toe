@@ -3,6 +3,7 @@ let ctx: AudioContext | null = null;
 function getCtx(): AudioContext {
   if (!ctx) ctx = new AudioContext();
   if (ctx.state === 'suspended') ctx.resume();
+  console.log('[sound] AudioContext state:', ctx.state);
   return ctx;
 }
 
@@ -13,6 +14,7 @@ function colToPan(col: number): number {
 
 /** Short percussive clack — bandpass-filtered noise burst */
 export function playDropSound(col: number, delaySec = 0): void {
+  console.log('[sound] playDropSound col:', col, 'delay:', delaySec);
   const ac = getCtx();
   const now = ac.currentTime + delaySec;
   const duration = 0.07;
@@ -48,6 +50,7 @@ export function playDropSound(col: number, delaySec = 0): void {
 
 /** Ascending arpeggio — 4 notes rising */
 export function playWinSound(): void {
+  console.log('[sound] playWinSound');
   const ac = getCtx();
   const freqs = [523, 659, 784, 1047]; // C5 E5 G5 C6
   freqs.forEach((freq, i) => {
@@ -70,6 +73,7 @@ export function playWinSound(): void {
 
 /** Descending minor — sad "wah wah" trombone slide */
 export function playLoseSound(): void {
+  console.log('[sound] playLoseSound');
   const ac = getCtx();
   // Two descending minor-interval pairs
   const pairs = [[392, 311], [330, 261]] as const;
@@ -99,6 +103,7 @@ export function playLoseSound(): void {
 
 /** Online game start — quick two-note "ready?" ping */
 export function playGameStartSound(): void {
+  console.log('[sound] playGameStartSound');
   const ac = getCtx();
   [440, 660].forEach((freq, i) => {
     const t = ac.currentTime + i * 0.14;
@@ -120,6 +125,7 @@ export function playGameStartSound(): void {
 
 /** Draw — two neutral tones */
 export function playDrawSound(): void {
+  console.log('[sound] playDrawSound');
   const ac = getCtx();
   [440, 440 * (5 / 4)].forEach((freq, i) => {
     const t = ac.currentTime + i * 0.18;
@@ -141,6 +147,7 @@ export function playDrawSound(): void {
 
 /** Two-stage ka-chunk: filtered noise impact + descending sine resonance */
 export function playShiftSound(direction: 'left' | 'right'): void {
+  console.log('[sound] playShiftSound direction:', direction);
   const ac = getCtx();
   const now = ac.currentTime;
   const pan = direction === 'left' ? -0.4 : 0.4;

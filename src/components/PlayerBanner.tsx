@@ -5,7 +5,7 @@ interface PlayerBannerProps {
   phase: 'playing' | 'won' | 'draw';
   winners: Player[];
   isAiTurn?: boolean;
-  mode?: '1p' | '2p' | 'online';
+  mode?: '0p' | '1p' | '2p' | 'online';
   isOnlineOpponentTurn?: boolean;
 }
 
@@ -22,7 +22,9 @@ export function PlayerBanner({ currentPlayer, phase, winners, isAiTurn, mode, is
   }
 
   let label: string;
-  if (isAiTurn) {
+  if (mode === '0p') {
+    label = `${currentPlayer === 'red' ? 'Red' : 'Black'} is thinking…`;
+  } else if (isAiTurn) {
     label = 'Black is thinking…';
   } else if (mode === '1p') {
     label = 'Your turn';
