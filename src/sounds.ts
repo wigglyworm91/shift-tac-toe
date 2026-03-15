@@ -46,6 +46,99 @@ export function playDropSound(col: number, delaySec = 0): void {
   source.stop(now + duration);
 }
 
+/** Ascending arpeggio — 4 notes rising */
+export function playWinSound(): void {
+  const ac = getCtx();
+  const freqs = [523, 659, 784, 1047]; // C5 E5 G5 C6
+  freqs.forEach((freq, i) => {
+    const t = ac.currentTime + i * 0.12;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.3, t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.35);
+  });
+}
+
+/** Descending minor — sad "wah wah" trombone slide */
+export function playLoseSound(): void {
+  const ac = getCtx();
+  // Two descending minor-interval pairs
+  const pairs = [[392, 311], [330, 261]] as const;
+  pairs.forEach(([startFreq, endFreq], i) => {
+    const t = ac.currentTime + i * 0.3;
+    const osc = ac.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(startFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, t + 0.25);
+
+    const filter = ac.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.2, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.28);
+  });
+}
+
+/** Online game start — quick two-note "ready?" ping */
+export function playGameStartSound(): void {
+  const ac = getCtx();
+  [440, 660].forEach((freq, i) => {
+    const t = ac.currentTime + i * 0.14;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.25, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.22);
+  });
+}
+
+/** Draw — two neutral tones */
+export function playDrawSound(): void {
+  const ac = getCtx();
+  [440, 440 * (5 / 4)].forEach((freq, i) => {
+    const t = ac.currentTime + i * 0.18;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.22, t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.3);
+  });
+}
+
 /** Two-stage ka-chunk: filtered noise impact + descending sine resonance */
 export function playShiftSound(direction: 'left' | 'right'): void {
   const ac = getCtx();

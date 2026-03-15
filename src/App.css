@@ -326,33 +326,93 @@ button {
   color: #888;
 }
 
-/* ── New Game buttons ───────────────────────────────── */
-.new-game-btns {
+/* ── Pre-game lobby ─────────────────────────────────── */
+.pre-lobby {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 48px 24px;
+}
+
+.lobby-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.lobby-option-group {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.new-game-btn {
+.lobby-option-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: #888;
+}
+
+.lobby-option-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lobby-option-btn {
   padding: 10px 18px;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  background: #ffffff22;
+  letter-spacing: 0.03em;
+  background: #ffffff18;
+  color: #ccc;
+  transition: background 0.12s, color 0.12s;
+}
+
+.lobby-option-btn:hover {
+  background: #ffffff28;
+  color: #fff;
+}
+
+.lobby-option-btn.active {
+  background: #ffffff38;
+  color: #fff;
+  outline: 2px solid #ffffff66;
+}
+
+.lobby-play-btn {
+  padding: 14px 48px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: #ffffff33;
   color: #fff;
   transition: background 0.15s;
 }
 
-.new-game-btn:hover {
-  background: #ffffff33;
-}
-
-.new-game-btn.active {
+.lobby-play-btn:hover {
   background: #ffffff44;
-  outline: 2px solid #ffffff88;
 }
 
-.new-game-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+/* ── Back button ────────────────────────────────────── */
+.back-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: #ffffff14;
+  color: #aaa;
+  transition: background 0.12s, color 0.12s;
+}
+
+.back-btn:hover {
+  background: #ffffff22;
+  color: #fff;
 }

@@ -104,6 +104,6 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return advanceTurn({ ...state, board, rowOffsets: newOffsets, discs: newDiscs, lastGravityDrops: gravityDrops });
     }
     case 'RESET_GAME':
-      return initialState(state.config, action.firstPlayer);
+      return initialState(action.config ?? state.config, action.firstPlayer);
   }
 }

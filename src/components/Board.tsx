@@ -1,6 +1,6 @@
 import { useRef, useLayoutEffect, useMemo } from 'react';
 import type { Cell as CellType, GameState, Board as BoardType } from '../types';
-import { CELL_WITH_GAP } from '../constants';
+import { CELL_WITH_GAP, CELL_GAP } from '../constants';
 import { canDrop, canShift } from '../logic/validation';
 import { Cell } from './Cell';
 import { ColumnDropTarget } from './ColumnDropTarget';
@@ -46,24 +46,34 @@ export function Board({
   const { winningCells, config } = gameState;
   const { rows, cols, maxOffset } = config;
 
+  // Guard against one-frame desync when config changes (displayBoard still has old dimensions).
+  const safeDisplayBoard =
+    displayBoard.length === rows && (displayBoard[0]?.length ?? 0) === cols
+      ? displayBoard
+      : gameState.board;
+
   // Detect cells that newly received a disc — only when enableDropAnim is true
-  const prevBoardRef = useRef<BoardType>(displayBoard);
+  const prevBoardRef = useRef<BoardType>(safeDisplayBoard);
   const newCells = useMemo(() => {
     if (!enableDropAnim) return new Set<string>();
+    // If the board was just resized, prev and current have different dimensions — skip diff.
+    if (prevBoardRef.current.length !== rows || (prevBoardRef.current[0]?.length ?? 0) !== cols) {
+      return new Set<string>();
+    }
     const result = new Set<string>();
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        if (!prevBoardRef.current[r][c] && displayBoard[r][c]) {
+        if (!prevBoardRef.current[r][c] && safeDisplayBoard[r][c]) {
           result.add(`${r}-${c}`);
         }
       }
     }
     return result;
-  }, [displayBoard, enableDropAnim, rows, cols]);
+  }, [safeDisplayBoard, enableDropAnim, rows, cols]);
 
   useLayoutEffect(() => {
-    prevBoardRef.current = displayBoard;
-  }, [displayBoard]);
+    prevBoardRef.current = safeDisplayBoard;
+  }, [safeDisplayBoard]);
 
   function isWinning(r: number, c: number) {
     return winningCells.some(([wr, wc]) => wr === r && wc === c);
@@ -88,8 +98,11 @@ export function Board({
         {Array.from({ length: rows }, (_, r) => {
           const slotOff = slotOffsets[r];
           const transformOff = transformOffsets[r];
-          const slots = getSlots(displayBoard[r], slotOff, cols, maxOffset);
+          const slots = getSlots(safeDisplayBoard[r], slotOff, cols, maxOffset);
+          const totalSlots = cols + maxOffset * 2;
           const transform = `translateX(${-(maxOffset - transformOff) * CELL_WITH_GAP}px)`;
+          const frameWidth = cols * CELL_WITH_GAP - CELL_GAP;
+          const sliderWidth = totalSlots * CELL_WITH_GAP - CELL_GAP;
 
           return (
             <div key={r} className="board-row-wrapper">
@@ -102,10 +115,10 @@ export function Board({
                 onShiftRight={() => onShift(r, 'right')}
               />
 
-              <div className="row-frame">
+              <div className="row-frame" style={{ width: frameWidth }}>
                 <div
                   className="row-slider"
-                  style={{ transform }}
+                  style={{ transform, width: sliderWidth }}
                   onTransitionEnd={(e) => {
                     if (e.propertyName === 'transform') onShiftTransitionEnd(r);
                   }}

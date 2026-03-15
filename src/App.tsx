@@ -6,7 +6,8 @@ import { getBestMove, type Difficulty } from './logic/ai';
 import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
-import { playDropSound, playShiftSound } from './sounds';
+import { Lobby, type LobbyChoice } from './components/Lobby';
+import { playDropSound, playShiftSound, playWinSound, playLoseSound, playDrawSound, playGameStartSound } from './sounds';
 import { useMultiplayer } from './multiplayer/useMultiplayer';
 import { OnlineLobby } from './multiplayer/OnlineLobby';
 import './App.css';
@@ -19,6 +20,10 @@ function hasRoomCodeInUrl(): boolean {
 }
 
 export function App() {
+  // 'lobby' | 'game' — skip lobby if joining via URL room code
+  const [screen, setScreen] = useState<'lobby' | 'game'>(() =>
+    hasRoomCodeInUrl() ? 'game' : 'lobby'
+  );
   const [mode, setMode] = useState<'1p' | '2p' | 'online'>(() =>
     hasRoomCodeInUrl() ? 'online' : '1p'
   );
@@ -102,7 +107,7 @@ export function App() {
 
   // Online: reset the board when a new online game starts.
   useEffect(() => {
-    if (mpState === 'playing') handleReset(false);
+    if (mpState === 'playing') { handleReset(false); playGameStartSound(); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mpState]);
 
@@ -139,6 +144,15 @@ export function App() {
         : gameState.winners.length === 2 ? 'both'
         : gameState.winners[0];
       trackEvent('game_end', { mode, result });
+
+      if (gameState.phase === 'draw') {
+        playDrawSound();
+      } else {
+        // Determine if the local player won
+        const localColor = mode === 'online' ? myColor : mode === '1p' ? 'red' : null;
+        const localWon = localColor === null || gameState.winners.includes(localColor);
+        if (localWon) playWinSound(); else playLoseSound();
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.phase]);
@@ -205,29 +219,34 @@ export function App() {
     // useEffect will sync on next render
   }
 
-  function handleModeChange(newMode: '1p' | '2p') {
-    if (mode === 'online') disconnect();
-    setMode(newMode);
-    dispatch({ type: 'RESET_GAME', firstPlayer: newMode === '1p' ? randomPlayer() : 'red' });
+  function handleLobbyPlay(choice: LobbyChoice) {
     shiftAnimatingRef.current = false;
     animatingRowRef.current = null;
     aiThinkingRef.current = false;
+
+    if (choice.mode === 'online') {
+      if (mode === 'online') disconnect();
+      setMode('online');
+      dispatch({ type: 'RESET_GAME', config: choice.config, firstPlayer: 'red' });
+      setScreen('game');
+      return;
+    }
+
+    const firstPlayer = choice.mode === '1p' ? randomPlayer() : 'red';
+    if (mode === 'online') disconnect();
+    if (choice.mode === '1p') setDifficulty(choice.difficulty);
+    setMode(choice.mode);
+    dispatch({ type: 'RESET_GAME', config: choice.config, firstPlayer });
+    setScreen('game');
   }
 
-  function handleAiGame(diff: Difficulty) {
+  function handleBackToLobby() {
     if (mode === 'online') disconnect();
-    setDifficulty(diff);
-    setMode('1p');
-    dispatch({ type: 'RESET_GAME', firstPlayer: randomPlayer() });
-    shiftAnimatingRef.current = false;
-    animatingRowRef.current = null;
-    aiThinkingRef.current = false;
+    setScreen('lobby');
   }
 
-  function handleOnlineMode() {
-    if (mode === 'online') disconnect();
-    setMode('online');
-    // Don't reset here — reset happens when the online game actually starts (see mpState effect below)
+  if (screen === 'lobby') {
+    return <Lobby onPlay={handleLobbyPlay} />;
   }
 
   return (
@@ -243,8 +262,7 @@ export function App() {
           onCreateRoom={createRoom}
           onDisconnect={() => {
             disconnect();
-            setMode('2p');
-            handleReset();
+            setScreen('lobby');
           }}
         />
       ) : (
@@ -303,39 +321,9 @@ export function App() {
         </>
       )}
 
-      <div className="new-game-btns">
-        <button
-          className={`new-game-btn${mode === '2p' ? ' active' : ''}`}
-          onClick={() => handleModeChange('2p')}
-        >
-          2 Player
-        </button>
-        <button
-          className={`new-game-btn${mode === '1p' && difficulty === 'easy' ? ' active' : ''}`}
-          onClick={() => handleAiGame('easy')}
-        >
-          Easy
-        </button>
-        <button
-          className={`new-game-btn${mode === '1p' && difficulty === 'hard' ? ' active' : ''}`}
-          onClick={() => handleAiGame('hard')}
-        >
-          Hard
-        </button>
-        <button
-          className={`new-game-btn${mode === '1p' && difficulty === 'impossible' ? ' active' : ''}`}
-          onClick={() => handleAiGame('impossible')}
-        >
-          Impossible
-        </button>
-        <button
-          className={`new-game-btn${mode === 'online' ? ' active' : ''}`}
-          onClick={handleOnlineMode}
-          disabled={mode === 'online' && gameState.phase === 'playing'}
-        >
-          Online
-        </button>
-      </div>
+      <button className="back-btn" onClick={handleBackToLobby}>
+        ← New Game
+      </button>
     </div>
   );
 }
