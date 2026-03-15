@@ -5,9 +5,11 @@ interface PlayerBannerProps {
   phase: 'playing' | 'won' | 'draw';
   winners: Player[];
   isAiTurn?: boolean;
+  mode?: '1p' | '2p' | 'online';
+  isOnlineOpponentTurn?: boolean;
 }
 
-export function PlayerBanner({ currentPlayer, phase, winners, isAiTurn }: PlayerBannerProps) {
+export function PlayerBanner({ currentPlayer, phase, winners, isAiTurn, mode, isOnlineOpponentTurn }: PlayerBannerProps) {
   if (phase === 'draw') {
     return <div className="player-banner draw">It's a draw!</div>;
   }
@@ -18,9 +20,21 @@ export function PlayerBanner({ currentPlayer, phase, winners, isAiTurn }: Player
         : `${winners[0] === 'red' ? 'Red' : 'Black'} wins!`;
     return <div className={`player-banner won ${winners[0]}`}>{msg}</div>;
   }
+
+  let label: string;
+  if (isAiTurn) {
+    label = 'Black is thinking…';
+  } else if (mode === '1p') {
+    label = 'Your turn';
+  } else if (mode === 'online') {
+    label = isOnlineOpponentTurn ? 'Their turn' : 'Your turn';
+  } else {
+    label = `${currentPlayer === 'red' ? 'Red' : 'Black'}'s turn`;
+  }
+
   return (
     <div className={`player-banner playing ${currentPlayer}`}>
-      {isAiTurn ? 'Black is thinking…' : `${currentPlayer === 'red' ? 'Red' : 'Black'}'s turn`}
+      {label}
     </div>
   );
 }

@@ -211,6 +211,8 @@ export function App() {
             phase={gameState.phase}
             winners={gameState.winners}
             isAiTurn={isAiTurn}
+            mode={mode}
+            isOnlineOpponentTurn={isOnlineOpponentTurn}
           />
 
           <Board
