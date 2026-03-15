@@ -8,7 +8,7 @@ import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
 import { Lobby, type LobbyChoice, type LobbySelections } from './components/Lobby';
 import { RulesModal } from './components/RulesModal';
-import { playDropSound, playShiftSound, playWinSound, playLoseSound, playDrawSound, playGameStartSound } from './sounds';
+import { playDropSound, playShiftSound, playWinSound, playLoseSound, playDrawSound, playGameStartSound, playRematchSound } from './sounds';
 import { useMultiplayer } from './multiplayer/useMultiplayer';
 import { OnlineLobby } from './multiplayer/OnlineLobby';
 import './App.css';
@@ -122,6 +122,11 @@ export function App() {
     playGameStartSound();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rematchAccepted]);
+
+  // Online: play sound when opponent offers a rematch.
+  useEffect(() => {
+    if (rematchState === 'received') playRematchSound();
+  }, [rematchState]);
 
   // Online: apply incoming opponent actions.
   useEffect(() => {
@@ -344,7 +349,7 @@ export function App() {
                 <p className="rematch-waiting">Waiting for opponent…</p>
               )}
               {rematchState === 'received' && (
-                <button className="lobby-btn" onClick={acceptRematch}>Accept Rematch</button>
+                <button className="lobby-btn rematch-glow" onClick={acceptRematch}>Accept Rematch</button>
               )}
             </div>
           )}

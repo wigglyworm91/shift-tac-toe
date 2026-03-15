@@ -145,6 +145,28 @@ export function playDrawSound(): void {
   });
 }
 
+/** Incoming rematch offer — short ascending two-tone ping */
+export function playRematchSound(): void {
+  console.log('[sound] playRematchSound');
+  const ac = getCtx();
+  [523, 784].forEach((freq, i) => {
+    const t = ac.currentTime + i * 0.18;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.28, t + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.28);
+  });
+}
+
 /** Two-stage ka-chunk: filtered noise impact + descending sine resonance */
 export function playShiftSound(direction: 'left' | 'right'): void {
   console.log('[sound] playShiftSound direction:', direction);
