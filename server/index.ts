@@ -1,15 +1,51 @@
+import { createServer } from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-import { createRoom, joinRoom, getRoomForSocket, removeRoom } from './rooms.js';
+import { createRoom, joinRoom, getRoomForSocket, removeRoom, getPreview } from './rooms.js';
 import type { ClientMessage, ServerMessage } from './protocol.js';
 
 const PORT = 8080;
-const wss = new WebSocketServer({ port: PORT });
 
-wss.on('listening', () => {
-  console.log(`WebSocket server listening on port ${PORT}`);
+// HTTP server handles OG-tag requests from link-preview bots.
+// WebSocket connections are attached to the same server.
+const httpServer = createServer(handleHttp);
+const wss = new WebSocketServer({ server: httpServer });
+
+httpServer.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
 
-wss.on('connection', (socket) => {
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function handleHttp(req: IncomingMessage, res: ServerResponse): void {
+  const code = req.url?.match(/^\/game\/([A-Z0-9]{6})$/i)?.[1]?.toUpperCase();
+  if (!code) { res.writeHead(404); res.end(); return; }
+
+  const preview = getPreview(code);
+  const name = escapeHtml(preview?.creatorName ?? 'Someone');
+  const title = `Shift Tac Toe — Challenge from ${name}`;
+  const description = `${name} is challenging you to a game of Shift Tac Toe! Click to accept.`;
+
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${description}" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${description}" />
+</head>
+<body></body>
+</html>`);
+}
+
+wss.on('connection', (socket: WebSocket) => {
   socket.on('message', (raw) => {
     let msg: ClientMessage;
     try {

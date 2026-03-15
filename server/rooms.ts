@@ -8,9 +8,20 @@ export interface Room {
 }
 
 const rooms = new Map<string, Room>();
-
-// Reverse index so we can find a room given just a socket
 const socketToRoom = new Map<WebSocket, Room>();
+
+// Separate preview cache for OG tags — persists after the room closes so
+// Discord's crawler (which arrives seconds after the link is shared) can still
+// read the creator's name even if the game has already started/ended.
+const PREVIEW_TTL_MS = 60 * 60 * 1000; // 1 hour
+const previews = new Map<string, { creatorName: string; expiresAt: number }>();
+
+export function getPreview(code: string): { creatorName: string } | null {
+  const p = previews.get(code);
+  if (!p) return null;
+  if (Date.now() > p.expiresAt) { previews.delete(code); return null; }
+  return { creatorName: p.creatorName };
+}
 
 function generateCode(): string {
   // 6-char alphanumeric, uppercase
@@ -25,6 +36,10 @@ export function createRoom(socket: WebSocket, creatorName: string): string {
   const room: Room = { code, redSocket: socket, blackSocket: null, creatorName };
   rooms.set(code, room);
   socketToRoom.set(socket, room);
+
+  // Store preview for OG tag generation (survives room closure)
+  previews.set(code, { creatorName, expiresAt: Date.now() + PREVIEW_TTL_MS });
+
   return code;
 }
 
