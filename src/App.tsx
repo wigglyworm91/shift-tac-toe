@@ -7,6 +7,7 @@ import { Board } from './components/Board';
 import { DiscCounter } from './components/DiscCounter';
 import { PlayerBanner } from './components/PlayerBanner';
 import { Lobby, type LobbyChoice } from './components/Lobby';
+import { RulesModal } from './components/RulesModal';
 import { playDropSound, playShiftSound, playWinSound, playLoseSound, playDrawSound, playGameStartSound } from './sounds';
 import { useMultiplayer } from './multiplayer/useMultiplayer';
 import { OnlineLobby } from './multiplayer/OnlineLobby';
@@ -26,6 +27,7 @@ export function App() {
     hasRoomCodeInUrl() ? 'online' : '1p'
   );
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [gameState, dispatch] = useReducer(gameReducer, undefined, () =>
     initialState(undefined, hasRoomCodeInUrl() ? 'red' : (Math.random() < 0.5 ? 'red' : 'black'))
   );
@@ -244,11 +246,25 @@ export function App() {
     setScreen('lobby');
   }
 
+  const footer = (
+    <footer className="app-footer">
+      <button className="footer-btn" onClick={() => setRulesOpen(true)}>How to play</button>
+      <a className="footer-link" href="https://github.com/wigglyworm91/shift-tac-toe" target="_blank" rel="noreferrer">GitHub</a>
+    </footer>
+  );
+
   if (screen === 'lobby') {
-    return <Lobby onPlay={handleLobbyPlay} />;
+    return (
+      <>
+        <Lobby onPlay={handleLobbyPlay} />
+        {footer}
+        <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      </>
+    );
   }
 
   return (
+    <>
     <div className="game">
       <h1 className="title">Shift Tac Toe</h1>
 
@@ -324,5 +340,8 @@ export function App() {
         ← New Game
       </button>
     </div>
+    {footer}
+    <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+    </>
   );
 }

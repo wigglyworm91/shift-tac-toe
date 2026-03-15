@@ -400,6 +400,104 @@ button {
   background: #ffffff44;
 }
 
+/* ── Footer ─────────────────────────────────────────── */
+.app-footer {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 24px;
+}
+
+.footer-btn {
+  font-size: 0.85rem;
+  color: #666;
+  transition: color 0.12s;
+}
+
+.footer-btn:hover { color: #aaa; }
+
+.footer-link {
+  font-size: 0.85rem;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.12s;
+}
+
+.footer-link:hover { color: #aaa; }
+
+/* ── Rules dialog ───────────────────────────────────── */
+.rules-dialog {
+  background: #0d1b2a;
+  color: #ccc;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 440px;
+  width: calc(100vw - 48px);
+}
+
+.rules-dialog::backdrop {
+  background: #000a;
+}
+
+.rules-content {
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rules-content h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.rules-content h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: #888;
+  margin: 0 0 6px;
+}
+
+.rules-content section {
+  display: flex;
+  flex-direction: column;
+}
+
+.rules-content p,
+.rules-content li {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.rules-content ul {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.rules-close-btn {
+  align-self: flex-end;
+  margin-top: 8px;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: #ffffff22;
+  color: #fff;
+  transition: background 0.12s;
+}
+
+.rules-close-btn:hover { background: #ffffff33; }
+
 /* ── Back button ────────────────────────────────────── */
 .back-btn {
   padding: 8px 16px;
