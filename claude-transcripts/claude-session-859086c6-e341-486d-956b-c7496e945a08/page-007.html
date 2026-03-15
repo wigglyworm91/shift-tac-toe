@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 7</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 7/7</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-006.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<span class="current">7</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2026-03-15T22-48-56-334Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-15T22-48-56-334Z" class="timestamp-link"><time datetime="2026-03-15T22:48:56.334Z" data-timestamp="2026-03-15T22:48:56.334Z">2026-03-15T22:48:56.334Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>can we add 3 move repetition draw? maybe store some kind of list of previous positions (hash or whatever) and if the same position is reached once then display a warning (somewhere... not sure), and if it's seen for a third time then end the game in a draw.</p>
+<p>this will require updating online code and AI code. AI should try to avoid draws with a slight negative penalty, but should prefer them to losing.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-49-34-561Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-49-34-561Z" class="timestamp-link"><time datetime="2026-03-15T22:49:34.561Z" data-timestamp="2026-03-15T22:49:34.561Z">2026-03-15T22:49:34.561Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>This is a fun feature. Let me plan this out:</p>
+<ol>
+<li>
+<p><strong>Position hashing</strong>: Need to hash the game state. The relevant state for repetition detection is: board + rowOffsets + currentPlayer. We can use a simple string representation.</p>
+</li>
+<li>
+<p><strong>Storing history</strong>: Need to store a map/list of position hashes with counts in GameState.</p>
+</li>
+<li>
+<p><strong>Repetition detection logic</strong>:</p>
+</li>
+<li>After each move, compute position hash</li>
+<li>If seen twice before (3rd occurrence), trigger draw</li>
+<li>
+<p>If seen once before (2nd occurrence), set some warning flag</p>
+</li>
+<li>
+<p><strong>GameState changes</strong>: Add <code>positionCounts: Record&lt;string, number&gt;</code> and maybe <code>drawOfferPending: boolean</code> or <code>repetitionWarning: boolean</code></p>
+</li>
+</ol>
+<p>Now I need to think through the UI side—showing a warning when we hit the same position twice. For online play, the position counts will naturally stay in sync since both clients execute the same reducer with identical actions. The AI should also get a small penalty for moves leading to repeated positions, so it avoids draws when winning but prefers them to losing. Let me examine the types and gameReducer to figure out the exact implementation, starting with how to construct the position hash from the board state, row offsets, and current player.</p>
+<p>I'll use a simple string encoding combining the board, rowOffsets, and currentPlayer—JSON.stringify works fine here since performance isn't a concern. Looking at the rules more carefully: the first occurrence is just normal play, the second occurrence triggers a warning, and the third occurrence ends the game in a draw. This matches chess's 3-fold repetition rule exactly.</p>
+<p>For tracking this, I'll store a <code>positionCounts</code> map in GameState that tracks how many times each position hash has been seen, then after each move I'll hash the current position and increment its count. When the count hits 3, the game phase becomes 'draw'; when it hits 2, I'll set a <code>repetitionWarning</code> flag so the UI can display the warning to the player.</p>
+<p>I need to make sure RESET_GAME clears out the position counts. For the AI's evaluation function, I should also penalize moves that lead to a second occurrence of a position, since while a draw (0 points) is better than losing, we want the AI to avoid walking into that trap if there are better moves available. nd occurrences (warning), so the AI avoids cycles. I can add this to the evaluate function: if the current position count is 2, give a slight negative score.</p>
+<p>Wait, but the AI uses <code>gameReducer</code> which will update <code>positionCounts</code>, so if a position count reaches 3, the phase becomes 'draw' and minimax handles it correctly. For the slight discouragement at count=2, I can check in the evaluate function.</p>
+<p>Actually, the issue is simpler: if the AI is running at depth 7 and the game cycles, it might cycle through the same positions. The position counts propagate through the game tree via the reducer, so a draw will naturally terminate when count=3. The AI should naturally prefer avoiding draws when it's winning (since a draw is 0 and a win is +10000+depth).</p>
+<p>The only case where we need explicit guidance is when the AI is slightly ahead and might accidentally cycle. A small penalty for "warning" positions (count=2) would help discourage it. I'll add a -50 penalty to the evaluation when the current position has been seen twice, which nudges the AI toward non-repetitive play without overriding its strategic priorities.</p>
+<p>For implementation, I need to update the GameState interface to track position counts and add a repetition warning flag, then create a position hashing function that encodes the board state and current player...</p>
+<p>Defining the data structures and hashing logic... I need to extract the hash function into a shared utility so both the game reducer and AI evaluation can use it without duplication. I'll export it from the gameReducer to keep things simple.</p>
+<p>Now I'm mapping out which files need updates: the types to add position tracking, the game reducer for the tracking logic itself, the AI module to apply the repetition penalty, and the UI components to display any warnings to the player.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-49-34-569Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-49-34-569Z" class="timestamp-link"><time datetime="2026-03-15T22:49:34.569Z" data-timestamp="2026-03-15T22:49:34.569Z">2026-03-15T22:49:34.569Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Let me read the files that need changing before planning anything.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-49-34-572Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-49-34-572Z" class="timestamp-link"><time datetime="2026-03-15T22:49:34.572Z" data-timestamp="2026-03-15T22:49:34.572Z">2026-03-15T22:49:34.572Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_016qir8wcymk4dr5Adxk8zij"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-49-34-593Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-49-34-593Z" class="timestamp-link"><time datetime="2026-03-15T22:49:34.593Z" data-timestamp="2026-03-15T22:49:34.593Z">2026-03-15T22:49:34.593Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→import type { GameState, Action, Player, Board, GameConfig } from &#x27;../types&#x27;;
+     2→import { DEFAULT_CONFIG } from &#x27;../constants&#x27;;
+     3→import { applyGravityAll } from &#x27;./gravity&#x27;;
+     4→import { shiftRow } from &#x27;./shift&#x27;;
+     5→import { checkWin } from &#x27;./winDetection&#x27;;
+     6→import { canDrop, canShift } from &#x27;./validation&#x27;;
+     7→
+     8→function emptyBoard(rows: number, cols: number): Board {
+     9→  return Array.from({ length: rows }, () =&gt; Array(cols).fill(null));
+    10→}
+    11→
+    12→export function initialState(config: GameConfig = DEFAULT_CONFIG, firstPlayer: Player = &#x27;red&#x27;): GameState {
+    13→  const discsPerPlayer = Math.ceil(config.rows * config.cols / 2);
+    14→  return {
+    15→    config,
+    16→    board: emptyBoard(config.rows, config.cols),
+    17→    rowOffsets: Array(config.rows).fill(0),
+    18→    currentPlayer: firstPlayer,
+    19→    discs: { red: discsPerPlayer, black: discsPerPlayer },
+    20→    phase: &#x27;playing&#x27;,
+    21→    winners: [],
+    22→    winningCells: [],
+    23→    lastGravityDrops: [],
+    24→  };
+    25→}
+    26→
+    27→function otherPlayer(p: Player): Player {
+    28→  return p === &#x27;red&#x27; ? &#x27;black&#x27; : &#x27;red&#x27;;
+    29→}
+    30→
+    31→function hasMoves(state: GameState, player: Player): boolean {
+    32→  const s = { ...state, currentPlayer: player };
+    33→  const { rows, cols } = state.config;
+    34→  for (let c = 0; c &lt; cols; c++) {
+    35→    if (canDrop(s, c)) return true;
+    36→  }
+    37→  for (let r = 0; r &lt; rows; r++) {
+    38→    if (canShift(s, r, &#x27;left&#x27;) || canShift(s, r, &#x27;right&#x27;)) return true;
+    39→  }
+    40→  return false;
+    41→}
+    42→
+    43→function advanceTurn(state: GameState): GameState {
+    44→  const { winners, winningCells } = checkWin(state.board, state.config);
+    45→  if (winners.length &gt; 0) {
+    46→    return { ...state, phase: &#x27;won&#x27;, winners, winningCells };
+    47→  }
+    48→
+    49→  const next = otherPlayer(state.currentPlayer);
+    50→
+    51→  // Check if next player has any moves; if not, check if current can continue
+    52→  if (!hasMoves({ ...state, currentPlayer: next }, next)) {
+    53→    if (!hasMoves(state, state.currentPlayer)) {
+    54→      return { ...state, phase: &#x27;draw&#x27; };
+    55→    }
+    56→    // Next player is stuck — skip their turn (stay with current player)
+    57→    return state;
+    58→  }
+    59→
+    60→  return { ...state, currentPlayer: next };
+    61→}
+    62→
+    63→function dropDisc(state: GameState, col: number): GameState {
+    64→  const { rows } = state.config;
+    65→  let targetRow = -1;
+    66→  for (let r = rows - 1; r &gt;= 0; r--) {
+    67→    if (state.board[r][col] === null) {
+    68→      targetRow = r;
+    69→      break;
+    70→    }
+    71→  }
+    72→  if (targetRow === -1) return state;
+    73→
+    74→  const newBoard = state.board.map((row, r) =&gt;
+    75→    row.map((cell, c) =&gt; (r === targetRow &amp;&amp; c === col ? state.currentPlayer : cell))
+    76→  );
+    77→
+    78→  const settledBoard = applyGravityAll(newBoard);
+    79→
+    80→  const newDiscs = {
+    81→    ...state.discs,
+    82→    [state.currentPlayer]: state.discs[state.currentPlayer] - 1,
+    83→  };
+    84→
+    85→  return advanceTurn({ ...state, board: settledBoard, discs: newDiscs });
+    86→}
+    87→
+    88→export function gameReducer(state: GameState, action: Action): GameState {
+    89→  switch (action.type) {
+    90→    case &#x27;DROP_DISC&#x27;: {
+    91→      if (!canDrop(state, action.col)) return state;
+    92→      return dropDisc(state, action.col);
+    93→    }
+    94→    case &#x27;SHIFT_ROW&#x27;: {
+    95→      if (!canShift(state, action.row, action.direction)) return state;
+    96→      const { board, reclaimed, gravityDrops } = shiftRow(state.board, action.row, action.direction);
+    97→      const newOffsets = state.rowOffsets.map((o, i) =&gt;
+    98→        i === action.row ? o + (action.direction === &#x27;left&#x27; ? -1 : 1) : o
+    99→      );
+   100→      const newDiscs = { ...state.discs };
+   101→      for (const [player, count] of Object.entries(reclaimed) as [Player, number][]) {
+   102→        newDiscs[player] += count;
+   103→      }
+   104→      return advanceTurn({ ...state, board, rowOffsets: newOffsets, discs: newDiscs, lastGravityDrops: gravityDrops });
+   105→    }
+   106→    case &#x27;RESIGN&#x27;:
+   107→      return { ...state, phase: &#x27;won&#x27;, winners: [otherPlayer(action.loser)], winningCells: [] };
+   108→    case &#x27;RESET_GAME&#x27;:
+   109→      return initialState(action.config ?? state.config, action.firstPlayer);
+   110→  }
+   111→}
+   112→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-49-34-693Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-49-34-693Z" class="timestamp-link"><time datetime="2026-03-15T22:49:34.693Z" data-timestamp="2026-03-15T22:49:34.693Z">2026-03-15T22:49:34.693Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_019BN1djvBA1MmU5FN6xTRU3"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-49-34-702Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-49-34-702Z" class="timestamp-link"><time datetime="2026-03-15T22:49:34.702Z" data-timestamp="2026-03-15T22:49:34.702Z">2026-03-15T22:49:34.702Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→import type { GameState, Action, Player, GameConfig } from &#x27;../types&#x27;;
+     2→import { gameReducer } from &#x27;./gameReducer&#x27;;
+     3→import { canDrop, canShift } from &#x27;./validation&#x27;;
+     4→import { generateLines } from &#x27;./winDetection&#x27;;
+     5→
+     6→type Coord = [number, number];
+     7→
+     8→function getMoves(state: GameState): Action[] {
+     9→  const moves: Action[] = [];
+    10→  const { rows, cols } = state.config;
+    11→  for (let c = 0; c &lt; cols; c++) {
+    12→    if (canDrop(state, c)) moves.push({ type: &#x27;DROP_DISC&#x27;, col: c });
+    13→  }
+    14→  for (let r = 0; r &lt; rows; r++) {
+    15→    if (canShift(state, r, &#x27;left&#x27;))  moves.push({ type: &#x27;SHIFT_ROW&#x27;, row: r, direction: &#x27;left&#x27; });
+    16→    if (canShift(state, r, &#x27;right&#x27;)) moves.push({ type: &#x27;SHIFT_ROW&#x27;, row: r, direction: &#x27;right&#x27; });
+    17→  }
+    18→  return moves;
+    19→}
+    20→
+    21→function evaluate(state: GameState, aiPlayer: Player, lines: Coord[][]): number {
+    22→  const opp: Player = aiPlayer === &#x27;red&#x27; ? &#x27;black&#x27; : &#x27;red&#x27;;
+    23→  let score = 0;
+    24→  for (const line of lines) {
+    25→    let aiCount = 0;
+    26→    let oppCount = 0;
+    27→    for (const [r, c] of line) {
+    28→      const cell = state.board[r][c];
+    29→      if (cell === aiPlayer) aiCount++;
+    30→      else if (cell === opp) oppCount++;
+    31→    }
+    32→    // Mixed lines are worthless — skip
+    33→    if (aiCount &gt; 0 &amp;&amp; oppCount &gt; 0) continue;
+    34→    // Score scales exponentially with count so near-complete lines dominate.
+    35→    // 10^(n-1): 1 disc → 1pt, 2 → 10pt, 3 → 100pt, etc.
+    36→    if (aiCount &gt; 0)  score += Math.pow(10, aiCount - 1);
+    37→    if (oppCount &gt; 0) score -= Math.pow(10, oppCount - 1);
+    38→  }
+    39→  return score;
+    40→}
+    41→
+    42→function minimax(
+    43→  state: GameState,
+    44→  depth: number,
+    45→  alpha: number,
+    46→  beta: number,
+    47→  maximizing: boolean,
+    48→  aiPlayer: Player,
+    49→  lines: Coord[][],
+    50→): number {
+    51→  if (state.phase === &#x27;won&#x27;) {
+    52→    const aiWon  = state.winners.includes(aiPlayer);
+    53→    const oppWon = state.winners.length &gt; 0 &amp;&amp; !aiWon;
+    54→    if (aiWon &amp;&amp; oppWon) return 0;
+    55→    return aiWon ? 10000 + depth : -(10000 + depth);
+    56→  }
+    57→  if (state.phase === &#x27;draw&#x27;) return 0;
+    58→  if (depth === 0) return evaluate(state, aiPlayer, lines);
+    59→
+    60→  const moves = getMoves(state);
+    61→  if (moves.length === 0) return evaluate(state, aiPlayer, lines);
+    62→
+    63→  if (maximizing) {
+    64→    let best = -Infinity;
+    65→    for (const action of moves) {
+    66→      const next = gameReducer(state, action);
+    67→      best = Math.max(best, minimax(next, depth - 1, alpha, beta, false, aiPlayer, lines));
+    68→      alpha = Math.max(alpha, best);
+    69→      if (alpha &gt;= beta) break;
+    70→    }
+    71→    return best;
+    72→  } else {
+    73→    let best = Infinity;
+    74→    for (const action of moves) {
+    75→      const next = gameReducer(state, action);
+    76→      best = Math.min(best, minimax(next, depth - 1, alpha, beta, true, aiPlayer, lines));
+    77→      beta = Math.min(beta, best);
+    78→      if (alpha &gt;= beta) break;
+    79→    }
+    80→    return best;
+    81→  }
+    82→}
+    83→
+    84→export type Difficulty = &#x27;easy&#x27; | &#x27;hard&#x27; | &#x27;impossible&#x27;;
+    85→
+    86→const DIFFICULTY_CONFIG: Record&lt;Difficulty, { maxDepth: number; randomChance: number }&gt; = {
+    87→  easy:       { maxDepth: 1, randomChance: 0.45 },
+    88→  hard:       { maxDepth: 4, randomChance: 0.15 },
+    89→  impossible: { maxDepth: 7, randomChance: 0 },
+    90→};
+    91→
+    92→/**
+    93→ * Scale search depth so compute time stays roughly constant across board sizes.
+    94→ * Targets the same number of nodes as a 3×3 board at depth 7 (≈9^7 ≈ 5M).
+    95→ * depth = 7 × log(9) / log(branchFactor), capped at maxDepth and floored at 3.
+    96→ */
+    97→function adaptiveDepth(config: GameConfig, maxDepth: number): number {
+    98→  const branch = config.cols + 2 * config.rows; // rough worst-case moves/turn
+    99→  const scaled = Math.round(7 * Math.log(9) / Math.log(Math.max(branch, 9)));
+   100→  return Math.max(3, Math.min(maxDepth, scaled));
+   101→}
+   102→
+   103→/** Returns the best action for the current player in `state`. */
+   104→export function getBestMove(state: GameState, difficulty: Difficulty = &#x27;impossible&#x27;): Action | null {
+   105→  const { maxDepth, randomChance } = DIFFICULTY_CONFIG[difficulty];
+   106→  const aiPlayer = state.currentPlayer;
+   107→  const moves = getMoves(state);
+   108→  if (moves.length === 0) return null;
+   109→
+   110→  // Lower difficulties randomly skip minimax and pick any legal move.
+   111→  if (randomChance &gt; 0 &amp;&amp; Math.random() &lt; randomChance) {
+   112→    return moves[Math.floor(Math.random() * moves.length)];
+   113→  }
+   114→
+   115→  const depth = adaptiveDepth(state.config, maxDepth);
+   116→
+   117→  // Generate lines once for this search
+   118→  const lines = generateLines(state.config.rows, state.config.cols, state.config.winLength);
+   119→
+   120→  // Shuffle to break ties non-deterministically
+   121→  for (let i = moves.length - 1; i &gt; 0; i--) {
+   122→    const j = Math.floor(Math.random() * (i + 1));
+   123→    [moves[i], moves[j]] = [moves[j], moves[i]];
+   124→  }
+   125→
+   126→  let bestScore = -Infinity;
+   127→  let bestMove = moves[0];
+   128→  for (const action of moves) {
+   129→    const next = gameReducer(state, action);
+   130→    const score = minimax(next, depth - 1, -Infinity, Infinity, false, aiPlayer, lines);
+   131→    if (score &gt; bestScore) {
+   132→      bestScore = score;
+   133→      bestMove = action;
+   134→    }
+   135→  }
+   136→  return bestMove;
+   137→}
+   138→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-19-273Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-19-273Z" class="timestamp-link"><time datetime="2026-03-15T22:50:19.273Z" data-timestamp="2026-03-15T22:50:19.273Z">2026-03-15T22:50:19.273Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Now I have a clear picture. Here's my plan:</p>
+<ol>
+<li>
+<p><strong><code>src/types.ts</code></strong>: Add <code>positionCounts: Record&lt;string, number&gt;</code> and <code>repetitionWarning: boolean</code> to <code>GameState</code></p>
+</li>
+<li>
+<p><strong><code>src/logic/gameReducer.ts</code></strong>:</p>
+</li>
+<li>Add <code>hashPosition(board, rowOffsets, currentPlayer)</code> (exported so AI can use it)</li>
+<li>Add positionCounts to initialState (empty object)</li>
+<li>In <code>advanceTurn</code>: after advancing the current player, compute hash of the new state, increment count, check for draw (count &gt;= 3) and set repetitionWarning (count &gt;= 2)</li>
+<li>In <code>RESET_GAME</code>: clear positionCounts and repetitionWarning</li>
+</ol>
+<p>The key insight is that I need to record the position after the turn advances—once we know the new current player, I'll hash the board state with the row offsets and that player, then check if we've seen this exact position before to detect repetition or draw.</p>
+<p>Since <code>advanceTurn</code> already receives the full <code>GameState</code>, I can access <code>positionCounts</code> directly and update it as part of the state transformation. After advancing to the next player, I'll compute the position hash, increment the count, and flag any repetition warnings or draw conditions.</p>
+<p>Updating advanceTurn to track positions... I'm finishing the turn transition by returning the updated state with the new position counts and setting a repetition warning if we've seen this position twice before. Then I'm defining a hash function that encodes the board layout, row offsets, and current player into a unique string for tracking position repetition. Finally, I'm adding a penalty in the AI's evaluation function to discourage it from cycling through repeated positions.</p>
+<p>Actually, let me reconsider how this works across the search tree. The terminal draw state (count=3) gets caught when the reducer sets phase to 'draw', which returns 0 in minimax. The warning state (count=2) gets penalized at leaf nodes with the -50 score. That should handle both cases appropriately without needing additional logic deeper in the search.</p>
+<p>For the UI, I'll add a repetition warning indicator in the App component—probably a small conditional element between the board and buttons, or I could extend the PlayerBanner to display it. A separate warning div seems cleaner for now.</p>
+<p>For online play, since both clients run the same reducer deterministically with identical action sequences, the positionCounts will stay synchronized automatically. The main thing to verify is that the initial RESET_GAME state is consistent between creator and joiner when the config gets shared.</p>
+<p>I also need to make sure the initial board position gets recorded in positionCounts with a count of 1, since it's the starting position that's been "seen" once. Let me update initialState to compute a hash of the board and track it...</p>
+<p>Updating initialState function...</p>
+<p>Actually, I realize I should extract the hash computation into its own standalone function that takes board, rowOffsets, and player as parameters rather than a full GameState. This avoids circular dependencies and lets both the reducer and initialState call it cleanly. The <code>Board</code> and <code>Player</code> types are already imported in gameReducer, so that's covered. I'm thinking through the threefold repetition rule for draws—the initial empty board should be recorded with a count of 1 when the game starts, so if either player reaches that same position a third time, it triggers a draw. The <code>RESIGN</code> action doesn't need to touch <code>positionCounts</code> since it just sets the phase directly, which is already correct. For <code>DROP_DISC</code>, it calls <code>dropDisc</code> which then calls <code>advanceTurn</code>, and <code>advanceTurn</code> will access the current <code>positionCounts</code> from the state.</p>
+<p>Since <code>DROP_DISC</code> spreads the state with the new board and discs while preserving <code>positionCounts</code>, that gets passed along correctly. Same pattern applies to <code>SHIFT_ROW</code>. One thing to be careful about: when hashing the position for repetition tracking, I shouldn't include <code>lastGravityDrops</code> since that's just UI metadata—the hash should only use board, rowOffsets, and currentPlayer, which is what I'm doing.</p>
+<p>Now I'm ready to implement the changes: adding <code>positionCounts</code> and <code>repetitionWarning</code> to the GameState type, then updating gameReducer to initialize and track positions through the game actions.</p>
+<p>Implementing the changes...</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-21-018Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-21-018Z" class="timestamp-link"><time datetime="2026-03-15T22:50:21.018Z" data-timestamp="2026-03-15T22:50:21.018Z">2026-03-15T22:50:21.018Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good picture. Here's the plan:</p>
+<ul>
+<li><strong><code>types.ts</code></strong>: add <code>positionCounts: Record&lt;string, number&gt;</code> and <code>repetitionWarning: boolean</code></li>
+<li><strong><code>gameReducer.ts</code></strong>: export <code>hashPosition(board, rowOffsets, player)</code>, record initial position in <code>initialState</code>, update <code>advanceTurn</code> to increment counts and trigger draw/warning</li>
+<li><strong><code>ai.ts</code></strong>: apply small negative penalty when current position has count ≥ 2 (discourages cycling, but still prefers draw over loss since draw = 0 &gt; -10000)</li>
+<li><strong><code>App.tsx</code></strong>: show a warning below the board when <code>repetitionWarning</code> is true</li>
+</ul></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-22-732Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-22-732Z" class="timestamp-link"><time datetime="2026-03-15T22:50:22.732Z" data-timestamp="2026-03-15T22:50:22.732Z">2026-03-15T22:50:22.732Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0186BqUtUsHUR2hK1PQrLHsx">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">types.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/types.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  lastGravityDrops: [number, number][];
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  lastGravityDrops: [number, number][];
+  positionCounts: Record&lt;string, number&gt;;
+  repetitionWarning: boolean;
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-50-22-738Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-50-22-738Z" class="timestamp-link"><time datetime="2026-03-15T22:50:22.738Z" data-timestamp="2026-03-15T22:50:22.738Z">2026-03-15T22:50:22.738Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>&lt;tool_use_error&gt;File has been modified since read, either by the user or by a linter. Read it again before attempting to write it.&lt;/tool_use_error&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-27-972Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-27-972Z" class="timestamp-link"><time datetime="2026-03-15T22:50:27.972Z" data-timestamp="2026-03-15T22:50:27.972Z">2026-03-15T22:50:27.972Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KdHbKF9N6qBbuXC6MtvGgG"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/types.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-50-27-983Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-50-27-983Z" class="timestamp-link"><time datetime="2026-03-15T22:50:27.983Z" data-timestamp="2026-03-15T22:50:27.983Z">2026-03-15T22:50:27.983Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→export type Player = &#x27;red&#x27; | &#x27;black&#x27;;
+     2→export type Cell = Player | null;
+     3→export type Board = Cell[][];
+     4→export type RowOffsets = number[];
+     5→
+     6→export interface GameConfig {
+     7→  rows: number;
+     8→  cols: number;
+     9→  winLength: number;
+    10→  maxOffset: number;
+    11→}
+    12→
+    13→export interface GameState {
+    14→  config: GameConfig;
+    15→  board: Board;
+    16→  rowOffsets: RowOffsets;
+    17→  currentPlayer: Player;
+    18→  discs: Record&lt;Player, number&gt;;
+    19→  phase: &#x27;playing&#x27; | &#x27;won&#x27; | &#x27;draw&#x27;;
+    20→  winners: Player[];
+    21→  winningCells: [number, number][];
+    22→  lastGravityDrops: [number, number][];
+    23→}
+    24→
+    25→export type Action =
+    26→  | { type: &#x27;DROP_DISC&#x27;; col: number }
+    27→  | { type: &#x27;SHIFT_ROW&#x27;; row: number; direction: &#x27;left&#x27; | &#x27;right&#x27; }
+    28→  | { type: &#x27;RESET_GAME&#x27;; firstPlayer?: Player; config?: GameConfig }
+    29→  | { type: &#x27;RESIGN&#x27;; loser: Player };
+    30→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-30-879Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-30-879Z" class="timestamp-link"><time datetime="2026-03-15T22:50:30.879Z" data-timestamp="2026-03-15T22:50:30.879Z">2026-03-15T22:50:30.879Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01MvWGdaonq6m3XuHQTg4tWM">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">types.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/types.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  lastGravityDrops: [number, number][];
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  lastGravityDrops: [number, number][];
+  positionCounts: Record&lt;string, number&gt;;
+  repetitionWarning: boolean;
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-50-30-890Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-50-30-890Z" class="timestamp-link"><time datetime="2026-03-15T22:50:30.890Z" data-timestamp="2026-03-15T22:50:30.890Z">2026-03-15T22:50:30.890Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/types.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-35-040Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-35-040Z" class="timestamp-link"><time datetime="2026-03-15T22:50:35.040Z" data-timestamp="2026-03-15T22:50:35.040Z">2026-03-15T22:50:35.040Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now update the reducer — add <code>hashPosition</code>, wire it into <code>initialState</code> and <code>advanceTurn</code>:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-40-555Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-40-555Z" class="timestamp-link"><time datetime="2026-03-15T22:50:40.555Z" data-timestamp="2026-03-15T22:50:40.555Z">2026-03-15T22:50:40.555Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01YDLQ932SS1AuCJ6xutAAxM">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">gameReducer.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">function emptyBoard(rows: number, cols: number): Board {
+  return Array.from({ length: rows }, () =&gt; Array(cols).fill(null));
+}
+
+export function initialState(config: GameConfig = DEFAULT_CONFIG, firstPlayer: Player = &#39;red&#39;): GameState {
+  const discsPerPlayer = Math.ceil(config.rows * config.cols / 2);
+  return {
+    config,
+    board: emptyBoard(config.rows, config.cols),
+    rowOffsets: Array(config.rows).fill(0),
+    currentPlayer: firstPlayer,
+    discs: { red: discsPerPlayer, black: discsPerPlayer },
+    phase: &#39;playing&#39;,
+    winners: [],
+    winningCells: [],
+    lastGravityDrops: [],
+  };
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">function emptyBoard(rows: number, cols: number): Board {
+  return Array.from({ length: rows }, () =&gt; Array(cols).fill(null));
+}
+
+/** Canonical string key for a position — board + row offsets + whose turn it is. */
+export function hashPosition(board: Board, rowOffsets: number[], currentPlayer: Player): string {
+  return board.map(row =&gt; row.map(c =&gt; c ? c[0] : &#39;.&#39;).join(&#39;&#39;)).join(&#39;|&#39;)
+    + &#39;/&#39; + rowOffsets.join(&#39;,&#39;)
+    + &#39;/&#39; + currentPlayer;
+}
+
+export function initialState(config: GameConfig = DEFAULT_CONFIG, firstPlayer: Player = &#39;red&#39;): GameState {
+  const discsPerPlayer = Math.ceil(config.rows * config.cols / 2);
+  const board = emptyBoard(config.rows, config.cols);
+  const rowOffsets = Array(config.rows).fill(0);
+  const initHash = hashPosition(board, rowOffsets, firstPlayer);
+  return {
+    config,
+    board,
+    rowOffsets,
+    currentPlayer: firstPlayer,
+    discs: { red: discsPerPlayer, black: discsPerPlayer },
+    phase: &#39;playing&#39;,
+    winners: [],
+    winningCells: [],
+    lastGravityDrops: [],
+    positionCounts: { [initHash]: 1 },
+    repetitionWarning: false,
+  };
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-50-40-562Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-50-40-562Z" class="timestamp-link"><time datetime="2026-03-15T22:50:40.562Z" data-timestamp="2026-03-15T22:50:40.562Z">2026-03-15T22:50:40.562Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-43-954Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-43-954Z" class="timestamp-link"><time datetime="2026-03-15T22:50:43.954Z" data-timestamp="2026-03-15T22:50:43.954Z">2026-03-15T22:50:43.954Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now update <code>advanceTurn</code> to track counts after switching players:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-50-284Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-50-284Z" class="timestamp-link"><time datetime="2026-03-15T22:50:50.284Z" data-timestamp="2026-03-15T22:50:50.284Z">2026-03-15T22:50:50.284Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01WFViPnwEJ98vZgMoiC8YaF">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">gameReducer.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">function advanceTurn(state: GameState): GameState {
+  const { winners, winningCells } = checkWin(state.board, state.config);
+  if (winners.length &gt; 0) {
+    return { ...state, phase: &#39;won&#39;, winners, winningCells };
+  }
+
+  const next = otherPlayer(state.currentPlayer);
+
+  // Check if next player has any moves; if not, check if current can continue
+  if (!hasMoves({ ...state, currentPlayer: next }, next)) {
+    if (!hasMoves(state, state.currentPlayer)) {
+      return { ...state, phase: &#39;draw&#39; };
+    }
+    // Next player is stuck — skip their turn (stay with current player)
+    return state;
+  }
+
+  return { ...state, currentPlayer: next };
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">function advanceTurn(state: GameState): GameState {
+  const { winners, winningCells } = checkWin(state.board, state.config);
+  if (winners.length &gt; 0) {
+    return { ...state, phase: &#39;won&#39;, winners, winningCells };
+  }
+
+  const next = otherPlayer(state.currentPlayer);
+
+  // Check if next player has any moves; if not, check if current can continue
+  if (!hasMoves({ ...state, currentPlayer: next }, next)) {
+    if (!hasMoves(state, state.currentPlayer)) {
+      return { ...state, phase: &#39;draw&#39; };
+    }
+    // Next player is stuck — skip their turn (stay with current player)
+    return state;
+  }
+
+  // Track position for 3-move-repetition rule.
+  const hash = hashPosition(state.board, state.rowOffsets, next);
+  const count = (state.positionCounts[hash] ?? 0) + 1;
+  const positionCounts = { ...state.positionCounts, [hash]: count };
+
+  if (count &gt;= 3) {
+    return { ...state, currentPlayer: next, positionCounts, repetitionWarning: false, phase: &#39;draw&#39; };
+  }
+
+  return { ...state, currentPlayer: next, positionCounts, repetitionWarning: count &gt;= 2 };
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-50-50-288Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-50-50-288Z" class="timestamp-link"><time datetime="2026-03-15T22:50:50.288Z" data-timestamp="2026-03-15T22:50:50.288Z">2026-03-15T22:50:50.288Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-54-293Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-54-293Z" class="timestamp-link"><time datetime="2026-03-15T22:50:54.293Z" data-timestamp="2026-03-15T22:50:54.293Z">2026-03-15T22:50:54.293Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now add the repetition penalty to the AI evaluator:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-56-235Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-56-235Z" class="timestamp-link"><time datetime="2026-03-15T22:50:56.235Z" data-timestamp="2026-03-15T22:50:56.235Z">2026-03-15T22:50:56.235Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Rs9JjEShFK9VTNEfzCza8p">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">ai.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import type { GameState, Action, Player, GameConfig } from &#39;../types&#39;;
+import { gameReducer } from &#39;./gameReducer&#39;;
+import { canDrop, canShift } from &#39;./validation&#39;;
+import { generateLines } from &#39;./winDetection&#39;;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import type { GameState, Action, Player, GameConfig } from &#39;../types&#39;;
+import { gameReducer, hashPosition } from &#39;./gameReducer&#39;;
+import { canDrop, canShift } from &#39;./validation&#39;;
+import { generateLines } from &#39;./winDetection&#39;;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-50-56-320Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-50-56-320Z" class="timestamp-link"><time datetime="2026-03-15T22:50:56.320Z" data-timestamp="2026-03-15T22:50:56.320Z">2026-03-15T22:50:56.320Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/ai.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-50-59-926Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-50-59-926Z" class="timestamp-link"><time datetime="2026-03-15T22:50:59.926Z" data-timestamp="2026-03-15T22:50:59.926Z">2026-03-15T22:50:59.926Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I need to use <code>hashPosition</code> in the evaluate function to add the repetition penalty.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-03-217Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-03-217Z" class="timestamp-link"><time datetime="2026-03-15T22:51:03.217Z" data-timestamp="2026-03-15T22:51:03.217Z">2026-03-15T22:51:03.217Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01N6vzbSr16THynfDw8onfB9">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">ai.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    if (aiCount &gt; 0)  score += Math.pow(10, aiCount - 1);
+    if (oppCount &gt; 0) score -= Math.pow(10, oppCount - 1);
+  }
+  return score;
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    if (aiCount &gt; 0)  score += Math.pow(10, aiCount - 1);
+    if (oppCount &gt; 0) score -= Math.pow(10, oppCount - 1);
+  }
+
+  // Slight penalty for positions approaching draw by repetition.
+  // Discourages cycling when ahead, but a draw (0) still beats a loss (-10000).
+  const hash = hashPosition(state.board, state.rowOffsets, state.currentPlayer);
+  if ((state.positionCounts[hash] ?? 0) &gt;= 2) score -= 50;
+
+  return score;
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-03-224Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-03-224Z" class="timestamp-link"><time datetime="2026-03-15T22:51:03.224Z" data-timestamp="2026-03-15T22:51:03.224Z">2026-03-15T22:51:03.224Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/ai.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-07-560Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-07-560Z" class="timestamp-link"><time datetime="2026-03-15T22:51:07.560Z" data-timestamp="2026-03-15T22:51:07.560Z">2026-03-15T22:51:07.560Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good, now the warning UI. Let me check the relevant App.tsx section and add a warning element:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-08-756Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-08-756Z" class="timestamp-link"><time datetime="2026-03-15T22:51:08.756Z" data-timestamp="2026-03-15T22:51:08.756Z">2026-03-15T22:51:08.756Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01PPCJ9bqYDsTNosuUs7VW8V"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;repetitionWarning|&lt;Board|player-banner&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-08-767Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-08-767Z" class="timestamp-link"><time datetime="2026-03-15T22:51:08.767Z" data-timestamp="2026-03-15T22:51:08.767Z">2026-03-15T22:51:08.767Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>44:  const [displayBoard, setDisplayBoard] = useState&lt;BoardType&gt;(() =&gt; initialState().board);
+322:          &lt;Board</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-12-196Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-12-196Z" class="timestamp-link"><time datetime="2026-03-15T22:51:12.196Z" data-timestamp="2026-03-15T22:51:12.196Z">2026-03-15T22:51:12.196Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017hJM7KREgAQT8C9UcWBRrq"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;offset&#34;: 322,
+  &#34;limit&#34;: 15
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-12-201Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-12-201Z" class="timestamp-link"><time datetime="2026-03-15T22:51:12.201Z" data-timestamp="2026-03-15T22:51:12.201Z">2026-03-15T22:51:12.201Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>   322→          &lt;Board
+   323→            gameState={gameState}
+   324→            displayBoard={displayBoard}
+   325→            slotOffsets={slotOffsets}
+   326→            transformOffsets={transformOffsets}
+   327→            enableDropAnim={enableDropAnim}
+   328→            onDrop={handleDrop}
+   329→            onShift={handleShift}
+   330→            onShiftTransitionEnd={handleShiftTransitionEnd}
+   331→            disabled={boardDisabled}
+   332→          /&gt;
+   333→
+   334→          {mode === &#x27;online&#x27; &amp;&amp; gameState.phase !== &#x27;playing&#x27; &amp;&amp; (
+   335→            &lt;div className=&quot;rematch-row&quot;&gt;
+   336→              {rematchState === &#x27;none&#x27; &amp;&amp; (
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-16-682Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-16-682Z" class="timestamp-link"><time datetime="2026-03-15T22:51:16.682Z" data-timestamp="2026-03-15T22:51:16.682Z">2026-03-15T22:51:16.682Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01CX1kFXKqdHryHSwfgtdznk">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.tsx</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">          {mode === &#39;online&#39; &amp;&amp; gameState.phase !== &#39;playing&#39; &amp;&amp; (</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">          {gameState.repetitionWarning &amp;&amp; gameState.phase === &#39;playing&#39; &amp;&amp; (
+            &lt;div className=&#34;repetition-warning&#34;&gt;
+              Repeated position — one more repetition = draw
+            &lt;/div&gt;
+          )}
+
+          {mode === &#39;online&#39; &amp;&amp; gameState.phase !== &#39;playing&#39; &amp;&amp; (</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-16-692Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-16-692Z" class="timestamp-link"><time datetime="2026-03-15T22:51:16.692Z" data-timestamp="2026-03-15T22:51:16.692Z">2026-03-15T22:51:16.692Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.tsx has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-20-822Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-20-822Z" class="timestamp-link"><time datetime="2026-03-15T22:51:20.822Z" data-timestamp="2026-03-15T22:51:20.822Z">2026-03-15T22:51:20.822Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now add the style:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-21-299Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-21-299Z" class="timestamp-link"><time datetime="2026-03-15T22:51:21.299Z" data-timestamp="2026-03-15T22:51:21.299Z">2026-03-15T22:51:21.299Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BqA497zUaR2WMig9B37wm6"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;\\.rematch-row&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.css&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-21-315Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-21-315Z" class="timestamp-link"><time datetime="2026-03-15T22:51:21.315Z" data-timestamp="2026-03-15T22:51:21.315Z">2026-03-15T22:51:21.315Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>317:.rematch-row {</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-24-093Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-24-093Z" class="timestamp-link"><time datetime="2026-03-15T22:51:24.093Z" data-timestamp="2026-03-15T22:51:24.093Z">2026-03-15T22:51:24.093Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EbwgMYvbE93CcZbxJJ4yJW"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.css&#34;,
+  &#34;offset&#34;: 317,
+  &#34;limit&#34;: 8
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-24-099Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-24-099Z" class="timestamp-link"><time datetime="2026-03-15T22:51:24.099Z" data-timestamp="2026-03-15T22:51:24.099Z">2026-03-15T22:51:24.099Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>   317→.rematch-row {
+   318→  display: flex;
+   319→  align-items: center;
+   320→  justify-content: center;
+   321→  min-height: 48px;
+   322→}
+   323→
+   324→.rematch-waiting {
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-27-624Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-27-624Z" class="timestamp-link"><time datetime="2026-03-15T22:51:27.624Z" data-timestamp="2026-03-15T22:51:27.624Z">2026-03-15T22:51:27.624Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01GSt9gGDQeGwGAkgkFmphJT">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.css</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.css</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">.rematch-row {</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">.repetition-warning {
+  font-size: 0.85rem;
+  color: #e0a020;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.rematch-row {</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-51-27-635Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-51-27-635Z" class="timestamp-link"><time datetime="2026-03-15T22:51:27.635Z" data-timestamp="2026-03-15T22:51:27.635Z">2026-03-15T22:51:27.635Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.css has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-51-35-520Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-51-35-520Z" class="timestamp-link"><time datetime="2026-03-15T22:51:35.520Z" data-timestamp="2026-03-15T22:51:35.520Z">2026-03-15T22:51:35.520Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. Here's what was added:</p>
+<ul>
+<li><strong><code>hashPosition</code></strong> in <code>gameReducer.ts</code>: encodes board + row offsets + current player into a string key</li>
+<li><strong><code>initialState</code></strong>: records the starting position at count 1</li>
+<li><strong><code>advanceTurn</code></strong>: after each move, increments the count for the new position; <code>repetitionWarning = true</code> at count 2, <code>phase = 'draw'</code> at count 3</li>
+<li><strong>AI <code>evaluate</code></strong>: −50 penalty when the leaf position has count ≥ 2 — enough to discourage cycling but a draw (0) still beats a loss (−10000)</li>
+<li><strong>Warning UI</strong>: amber text below the board when <code>repetitionWarning</code> is set</li>
+</ul>
+<p>Online mode gets this for free since both clients run the same reducer with the same actions.</p></div></div></div>
+<div class="message user" id="msg-2026-03-15T22-51-35-553Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-15T22-51-35-553Z" class="timestamp-link"><time datetime="2026-03-15T22:51:35.553Z" data-timestamp="2026-03-15T22:51:35.553Z">2026-03-15T22:51:35.553Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>i will note that currently max_offsets has a bodge in the form of unlimited being set to 1000. i'm kinda happy to keep that bodge. we just need to consider all offsets above, say, 100 to be identical in the AI and draw detection code</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-07-977Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-07-977Z" class="timestamp-link"><time datetime="2026-03-15T22:52:07.977Z" data-timestamp="2026-03-15T22:52:07.977Z">2026-03-15T22:52:07.977Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants to normalize large maxOffset values (≥ 100) to a canonical value for the purposes of position hashing and AI evaluation. The bodge is that "unlimited" is set to 1000, but for hashing purposes, row offsets above 100 should all be treated as equivalent (otherwise you'd never get a position repeat when rows are shifting freely).</p>
+<p>Wait, let me think about this more carefully. The issue is:</p>
+<ol>
+<li>
+<p><strong>Position hashing for repetition detection</strong>: If a row has offset 5 and then goes to offset 6, they'd hash differently, so you'd never detect a repetition even if the board looks the same. But the board content actually IS different because the virtual row array is indexed differently... hmm.</p>
+</li>
+<li>
+<p><strong>rowOffsets affect available moves</strong>: The <code>rowOffsets</code> track how much each row has shifted, and they matter because they determine which moves are legal (canShift checks against maxOffset). Two positions with identical board content and currentPlayer but different rowOffsets could have different available moves, making them genuinely different positions for game-theory purposes. However, once maxOffset reaches "unlimited" (1000), the distinction between offset 500 and offset 600 becomes meaningless—both are effectively unconstrained, so they should hash identically.</p>
+</li>
+</ol>
+<p>The real insight is that for unlimited maxOffset, only the board content and currentPlayer matter for hashing, since the specific numeric offset values don't affect gameplay anymore. maxOffset &gt;= 100: replace all offset values with 0 (or any constant) since they're all "middle"
+- Otherwise: use the actual values</p>
+<p>Wait but we don't have access to <code>maxOffset</code> in the current <code>hashPosition</code> signature. It takes <code>(board, rowOffsets, currentPlayer)</code>. We need to either pass config or maxOffset to it.</p>
+<p>Let me look at what the user said: "we just need to consider all offsets above, say, 100 to be identical in the AI and draw detection code".</p>
+<p>I think the simplest normalization is: for each row offset, cap it at some threshold like 100 — anything above that gets treated as equivalent. This way I can normalize offsets without needing to pass maxOffset around, since the threshold is independent of the actual game config. Offset, cap it at min(offset, 100) and max it at -100. Or even simpler: if maxOffset &gt;= 100, treat all offsets as 0 in the hash. </p>
+<p>Actually more precisely: for draw detection purposes, what matters is whether a row CAN be shifted in each direction. If maxOffset &gt;= 100, any row at any offset can be shifted both ways (practically), so they're all equivalent. If maxOffset = 1, an offset of -1 can only go right, 0 can go either way, +1 can only go left.</p>
+<p>The cleanest approach is to normalize each rowOffset based on whether it's at a limit or free to move. If maxOffset is 5 and I have offsets of 3 versus 4, those are both "not at limit" but represent different values—yet for game-theoretic equivalence, they should hash the same way. So I should map each offset to just three states: -1 if at the left limit, +1 if at the right limit, or 0 if it can shift either direction. This captures exactly what matters for repetition detection—whether each row is constrained or free.</p>
+<p>For the unlimited case where maxOffset &gt;= 100, all offsets normalize to 0 since nothing ever hits a limit, so different shift sequences reaching the same board position get treated as identical, which is exactly what we want.</p>
+<p>Now I need to update the hashPosition function to accept maxOffset as a parameter and apply this normalization logic, then thread that parameter through the gameReducer and AI code.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-10-177Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-10-177Z" class="timestamp-link"><time datetime="2026-03-15T22:52:10.177Z" data-timestamp="2026-03-15T22:52:10.177Z">2026-03-15T22:52:10.177Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good point. The real issue is that for position equivalence, what matters about row offsets is only whether each row is <strong>at its left limit</strong>, <strong>at its right limit</strong>, or <strong>free to move either way</strong> — not the exact numeric value. So the proper normalization is to encode each offset as <code>-1 / 0 / +1</code> based on limit-status, not the raw number. This works correctly for small <code>maxOffset</code> values too (e.g. <code>maxOffset=1</code> where the natural range is already <code>-1/0/+1</code>), and for unlimited it collapses everything to <code>0</code>.</p>
+<p>The only change is in <code>hashPosition</code> — add <code>maxOffset</code> and normalize each offset before encoding:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-14-477Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-14-477Z" class="timestamp-link"><time datetime="2026-03-15T22:52:14.477Z" data-timestamp="2026-03-15T22:52:14.477Z">2026-03-15T22:52:14.477Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_015yHu774ZBYsYj8jKNNpYjB">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">gameReducer.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">/** Canonical string key for a position — board + row offsets + whose turn it is. */
+export function hashPosition(board: Board, rowOffsets: number[], currentPlayer: Player): string {
+  return board.map(row =&gt; row.map(c =&gt; c ? c[0] : &#39;.&#39;).join(&#39;&#39;)).join(&#39;|&#39;)
+    + &#39;/&#39; + rowOffsets.join(&#39;,&#39;)
+    + &#39;/&#39; + currentPlayer;
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">/** Canonical string key for a position — board + row offsets + whose turn it is.
+ *  Row offsets are normalised to limit-status (-1 = at left limit, 0 = free, +1 = at right limit)
+ *  so positions that differ only in the specific numeric offset but have the same shift
+ *  availability are treated as identical. This is especially important for unlimited shifting,
+ *  where the raw numeric offset is meaningless.
+ */
+export function hashPosition(board: Board, rowOffsets: number[], currentPlayer: Player, maxOffset: number): string {
+  const normOffsets = rowOffsets.map(o =&gt;
+    o &lt;= -maxOffset ? -1 : o &gt;= maxOffset ? 1 : 0
+  );
+  return board.map(row =&gt; row.map(c =&gt; c ? c[0] : &#39;.&#39;).join(&#39;&#39;)).join(&#39;|&#39;)
+    + &#39;/&#39; + normOffsets.join(&#39;,&#39;)
+    + &#39;/&#39; + currentPlayer;
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-52-14-488Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-52-14-488Z" class="timestamp-link"><time datetime="2026-03-15T22:52:14.488Z" data-timestamp="2026-03-15T22:52:14.488Z">2026-03-15T22:52:14.488Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-18-439Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-18-439Z" class="timestamp-link"><time datetime="2026-03-15T22:52:18.439Z" data-timestamp="2026-03-15T22:52:18.439Z">2026-03-15T22:52:18.439Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01W4k25ZSTVnB4cq94TANKEr"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;hashPosition&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-52-18-458Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-52-18-458Z" class="timestamp-link"><time datetime="2026-03-15T22:52:18.458Z" data-timestamp="2026-03-15T22:52:18.458Z">2026-03-15T22:52:18.458Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>18:export function hashPosition(board: Board, rowOffsets: number[], currentPlayer: Player, maxOffset: number): string {
+31:  const initHash = hashPosition(board, rowOffsets, firstPlayer);
+81:  const hash = hashPosition(state.board, state.rowOffsets, next);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-21-731Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-21-731Z" class="timestamp-link"><time datetime="2026-03-15T22:52:21.731Z" data-timestamp="2026-03-15T22:52:21.731Z">2026-03-15T22:52:21.731Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01TgYUyJu1Y2igLyosczRovw">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">gameReducer.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  const initHash = hashPosition(board, rowOffsets, firstPlayer);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  const initHash = hashPosition(board, rowOffsets, firstPlayer, config.maxOffset);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-52-21-744Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-52-21-744Z" class="timestamp-link"><time datetime="2026-03-15T22:52:21.744Z" data-timestamp="2026-03-15T22:52:21.744Z">2026-03-15T22:52:21.744Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-27-897Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-27-897Z" class="timestamp-link"><time datetime="2026-03-15T22:52:27.897Z" data-timestamp="2026-03-15T22:52:27.897Z">2026-03-15T22:52:27.897Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01DLfXviGuA179Rit7XQsC1a">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">gameReducer.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  const hash = hashPosition(state.board, state.rowOffsets, next);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  const hash = hashPosition(state.board, state.rowOffsets, next, state.config.maxOffset);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-52-27-903Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-52-27-903Z" class="timestamp-link"><time datetime="2026-03-15T22:52:27.903Z" data-timestamp="2026-03-15T22:52:27.903Z">2026-03-15T22:52:27.903Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/gameReducer.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-31-631Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-31-631Z" class="timestamp-link"><time datetime="2026-03-15T22:52:31.631Z" data-timestamp="2026-03-15T22:52:31.631Z">2026-03-15T22:52:31.631Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now fix the call in <code>ai.ts</code> too:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-31-918Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-31-918Z" class="timestamp-link"><time datetime="2026-03-15T22:52:31.918Z" data-timestamp="2026-03-15T22:52:31.918Z">2026-03-15T22:52:31.918Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KmnM4F5u8Bsg3bD5VtbVAJ"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;hashPosition&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-52-31-931Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-52-31-931Z" class="timestamp-link"><time datetime="2026-03-15T22:52:31.931Z" data-timestamp="2026-03-15T22:52:31.931Z">2026-03-15T22:52:31.931Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2:import { gameReducer, hashPosition } from &#x27;./gameReducer&#x27;;
+42:  const hash = hashPosition(state.board, state.rowOffsets, state.currentPlayer);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-35-976Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-35-976Z" class="timestamp-link"><time datetime="2026-03-15T22:52:35.976Z" data-timestamp="2026-03-15T22:52:35.976Z">2026-03-15T22:52:35.976Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Geon4dTFmgoT4487JS1LG8">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">ai.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  const hash = hashPosition(state.board, state.rowOffsets, state.currentPlayer);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  const hash = hashPosition(state.board, state.rowOffsets, state.currentPlayer, state.config.maxOffset);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-15T22-52-35-988Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-15T22-52-35-988Z" class="timestamp-link"><time datetime="2026-03-15T22:52:35.988Z" data-timestamp="2026-03-15T22:52:35.988Z">2026-03-15T22:52:35.988Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/ai.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-15T22-52-39-332Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-15T22-52-39-332Z" class="timestamp-link"><time datetime="2026-03-15T22:52:39.332Z" data-timestamp="2026-03-15T22:52:39.332Z">2026-03-15T22:52:39.332Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All three call sites updated.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-006.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<span class="current">7</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

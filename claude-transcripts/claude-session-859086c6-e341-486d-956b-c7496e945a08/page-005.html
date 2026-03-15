@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 5</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 5/7</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-004.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<span class="current">5</span>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-006.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-03-14T01-01-03-686Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-14T01-01-03-686Z" class="timestamp-link"><time datetime="2026-03-14T01:01:03.686Z" data-timestamp="2026-03-14T01:01:03.686Z">2026-03-14T01:01:03.686Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-03-14T01-01-03-686Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-14T01-01-03-686Z" class="timestamp-link"><time datetime="2026-03-14T01:01:03.686Z" data-timestamp="2026-03-14T01:01:03.686Z">2026-03-14T01:01:03.686Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/compact</command-name>
+            <command-message>compact</command-message>
+            <command-args></command-args></p></div></div></div>
+<div class="message user" id="msg-2026-03-14T01-02-43-166Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-14T01-02-43-166Z" class="timestamp-link"><time datetime="2026-03-14T01:02:43.166Z" data-timestamp="2026-03-14T01:02:43.166Z">2026-03-14T01:02:43.166Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Compacted </local-command-stdout></p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-05-03-393Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-05-03-393Z" class="timestamp-link"><time datetime="2026-03-14T01:05:03.393Z" data-timestamp="2026-03-14T01:05:03.393Z">2026-03-14T01:05:03.393Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>No response requested.</p></div></div></div>
+<div class="message user" id="msg-2026-03-14T01-05-38-817Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-14T01-05-38-817Z" class="timestamp-link"><time datetime="2026-03-14T01:05:38.817Z" data-timestamp="2026-03-14T01:05:38.817Z">2026-03-14T01:05:38.817Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>can you make a claude.md for this project plz</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-05-40-965Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-05-40-965Z" class="timestamp-link"><time datetime="2026-03-14T01:05:40.965Z" data-timestamp="2026-03-14T01:05:40.965Z">2026-03-14T01:05:40.965Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants me to create a CLAUDE.md file for their project. Let me explore the project structure first to understand what's there.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-05-44-811Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-05-44-811Z" class="timestamp-link"><time datetime="2026-03-14T01:05:44.811Z" data-timestamp="2026-03-14T01:05:44.811Z">2026-03-14T01:05:44.811Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01DN2c5RSCiKY97TfqyXPTrE"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Explore project structure</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subagent_type&#34;: &#34;Explore&#34;,
+  &#34;prompt&#34;: &#34;Give me a thorough overview of this project at /Users/hayley/projects/shift-tac-toe. I need:\n1. Full file/directory structure\n2. Contents of package.json\n3. Contents of vite.config.ts\n4. Key source files: src/types.ts, src/logic/gameReducer.ts, src/logic/shift.ts, src/logic/gravity.ts, src/logic/winDetection.ts, src/logic/ai.ts, src/sounds.ts, src/App.tsx (overview), src/components/Board.tsx, src/components/PlayerBanner.tsx\n5. Any existing CLAUDE.md or README files\n\nReturn a comprehensive summary so I can write a good CLAUDE.md.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-06-28-272Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-06-28-272Z" class="timestamp-link"><time datetime="2026-03-14T01:06:28.272Z" data-timestamp="2026-03-14T01:06:28.272Z">2026-03-14T01:06:28.272Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Perfect! Now I have all the information I need. Let me compile a comprehensive overview.
+
+## Comprehensive Project Overview: Shift Tac Toe
+
+### 1. Project Structure
+
+```
+shift-tac-toe/
+├── index.html
+├── package.json
+├── package-lock.json
+├── vite.config.ts
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── rules.txt
+├── src/
+│   ├── main.tsx                    (React entry point)
+│   ├── App.tsx                     (Main game component with state &amp; AI)
+│   ├── types.ts                    (TypeScript type definitions)
+│   ├── constants.ts                (Game constants: 3x3 board, 5 discs/player)
+│   ├── sounds.ts                   (Procedural audio generation)
+│   ├── index.css
+│   ├── App.css
+│   ├── logic/
+│   │   ├── gameReducer.ts          (Game state management)
+│   │   ├── shift.ts                (Row shifting logic)
+│   │   ├── gravity.ts              (Gravity simulation)
+│   │   ├── winDetection.ts         (Win condition checking)
+│   │   ├── validation.ts           (Move validation)
+│   │   ├── ai.ts                   (Minimax AI with alpha-beta pruning)
+│   │   └── ai.test.ts              (AI test suite)
+│   └── components/
+│       ├── Board.tsx               (Main board rendering)
+│       ├── Cell.tsx                (Individual cell component)
+│       ├── PlayerBanner.tsx        (Game status display)
+│       ├── ColumnDropTarget.tsx    (Drop zone UI)
+│       ├── RowShiftControls.tsx    (Shift buttons)
+│       ├── DiscCounter.tsx         (Disc resource display)
+│       └── WinOverlay.tsx          (Win announcement)
+└── dist/                           (Build output)
+```
+
+### 2. Package.json
+
+This is a React + TypeScript project using Vite as the build tool:
+- **Runtime**: React 19.0.0, React DOM 19.0.0
+- **Dev Tools**: TypeScript 5.7.2, Vite 6.2.0, Vitest 4.1.0 (testing)
+- **Scripts**: 
+  - `npm run dev` - Start dev server
+  - `npm run test` - Run tests
+  - `npm run build` - TypeScript check + Vite build
+  - `npm run preview` - Preview production build
+
+### 3. Vite Config
+
+Minimal setup with React plugin and Node test environment for Vitest.
+
+### 4. Core Game Types (`src/types.ts`)
+
+- **Player**: &#x27;red&#x27; | &#x27;black&#x27;
+- **Board**: 3x3 grid of cells (Player | null)
+- **RowOffsets**: [number, number, number] - tracks row shift state (-1, 0, or 1)
+- **GameState**: Comprehensive state object containing:
+  - board, rowOffsets, currentPlayer, discs (resource tracking)
+  - phase: &#x27;playing&#x27; | &#x27;won&#x27; | &#x27;draw&#x27;
+  - winners, winningCells, lastGravityDrops (for animations)
+- **Actions**: DROP_DISC, SHIFT_ROW, RESET_GAME
+
+### 5. Game Logic
+
+**gameReducer.ts** - State management:
+- Initializes 3x3 board, 5 discs per player, red starts
+- Handles DROP_DISC, SHIFT_ROW, RESET_GAME actions
+- Manages turn advancement with draw detection
+- Checks for legal moves (prevent stuck players)
+
+**shift.ts** - Row manipulation:
+- Shifts rows left/right by 1 cell
+- Ejects discs from edges (returned to player)
+- Returns ShiftResult with board, reclaimed discs, gravity tracking
+
+**gravity.ts** - Physics:
+- `applyGravityToColumn()` - Fills column bottom-up
+- `applyGravityAll()` - Applies to entire board
+- `applyGravityAllTracked()` - Also returns which cells received discs (for drop animations)
+
+**winDetection.ts** - Win conditions:
+- Checks 8 lines: 3 rows, 3 columns, 2 diagonals
+- Returns all winners (both can win) and winning cell coordinates
+- Supports simultaneous wins by both players
+
+**validation.ts** - Move legality:
+- `canDrop(state, col)`: Column not full, has discs remaining, game playing
+- `canShift(state, row, dir)`: Row offset not at limit (-1 to +1 range)
+
+### 6. AI Engine (`src/logic/ai.ts`)
+
+**Algorithm**: Minimax with alpha-beta pruning at depth 7 (tuned for unbeatable play)
+
+Key features:
+- **getMoves()**: Enumerates all legal DROP_DISC and SHIFT_ROW actions
+- **evaluate()**: Heuristic scoring based on line control:
+  - Two discs in same line: +100 (AI) / -100 (opponent)
+  - One disc in same line: +10 / -10
+  - Mixed lines: ignored (no strategic value)
+- **minimax()**: Recursive with alpha-beta pruning
+  - Win bonus: +10000 + depth (prefers faster wins)
+  - Loss penalty: -(10000 + depth)
+  - Terminal states: &#x27;won&#x27; or &#x27;draw&#x27; phases
+- **Move selection**: Shuffles moves to break ties randomly (non-deterministic behavior)
+
+**Test suite** (`ai.test.ts`):
+- Tests basic move generation
+- Verifies AI takes immediate wins
+- Verifies AI blocks opponent wins
+- Confirms AI prefers winning over blocking
+- Handles board state after shifts
+
+### 7. Audio Synthesis (`src/sounds.ts`)
+
+No audio files—all sounds procedurally generated using Web Audio API:
+
+**playDropSound(col, delaySec)**:
+- 70ms percussive noise burst
+- Bandpass filter at 1100Hz
+- Stereo panned by column (-0.5 left, 0 center, +0.5 right)
+- Exponential decay envelope
+
+**playShiftSound(direction)**:
+- Two-stage effect:
+  - &quot;ka&quot;: 45ms sharp mid-range noise (500Hz bandpass)
+  - &quot;chunk&quot;: 150ms sine sweep descending from 160Hz to 55Hz
+- Stereo panned left (-0.4) or right (+0.4) by direction
+
+### 8. App Component (`src/App.tsx`)
+
+**State Management**:
+- `gameState`: Reducer-driven (gameReducer)
+- `displayBoard` / `slotOffsets`: Frozen during shift animations for visual continuity
+- `transformOffsets`: Drives CSS transitions for smooth row sliding
+- `enableDropAnim`: Controls when drop-in animations play (not after shifts)
+
+**Animation Coordination**:
+- Shift animations use CSS transforms + transition end events
+- When shift ends, gravity-dropped discs play clack sounds with staggered delays
+- Board snaps to final state after animation
+
+**AI Integration**:
+- AI runs on `gameState.currentPlayer === &#x27;black&#x27;` in 1P mode
+- 500ms delay before move (avoids immediate-turn jarring)
+- Disabled during animations via `isAiTurn` flag
+
+**Game Modes**:
+- 1P: Player (red) vs AI (black)
+- 2P: Red vs Black (both human)
+
+### 9. Board Component (`src/components/Board.tsx`)
+
+**Visual System**:
+- 3 rows, 3 visible cells per row in frame
+- Rows can shift ±1 position, with 5-slot virtual array:
+  - `slotOffsets`: Pre-shift state (where board data lives)
+  - `transformOffsets`: CSS transform position (visual window)
+- Drop targets above board, shift controls left/right
+
+**Drop Animation Detection**:
+- Tracks which cells changed from null → player
+- Only plays when `enableDropAnim` is true (user drops, not after shifts)
+
+**Winning Cells Highlight**:
+- Marks cells participating in winning lines
+
+### 10. Supporting Components
+
+- **PlayerBanner.tsx**: Displays current turn, winner, draw, or &quot;thinking…&quot; for AI
+- **Cell.tsx**: Renders individual disc or empty cell with drop-in animation
+- **ColumnDropTarget.tsx**: Clickable zones for dropping
+- **RowShiftControls.tsx**: Left/right shift buttons
+- **DiscCounter.tsx**: Shows remaining discs per player
+
+### 11. Game Rules (from rules.txt)
+
+- 3x3 grid (Connect Four variant)
+- Players drop discs (red vs black), 5 discs each
+- Rows can shift left/right ±1 from original position
+- Discs ejected from edges are reclaimed
+- Gravity applies after every action
+- Win: 3-in-a-row (row, column, or diagonal)
+- Both players can win simultaneously
+- Draw if no legal moves remain
+
+### 12. Constants (`src/constants.ts`)
+
+- ROWS = 3, COLS = 3
+- DISCS_PER_PLAYER = 5
+- MAX_OFFSET = 1 (rows can shift ±1)
+- CELL_SIZE = 80px, CELL_GAP = 4px, CELL_WITH_GAP = 84px
+
+### 13. Development Timeline (Git History)
+
+1. Initial attempt (basic structure)
+2. Worse animation (early iteration)
+3. Better animation (shifting fully correct)
+4. Sound effects (procedural audio without audio files)
+5. UI improvements (&quot;clicky clacky&quot;)
+6. First AI pass (basic minimax)
+7. **Final AI tuning** (depth 7, &quot;probably unbeatable&quot;)
+
+---
+
+## Summary
+
+**Shift Tac Toe** is a polished 3x3 Connect-Four variant built with React + TypeScript. It features:
+- **Core mechanic**: Drop discs + shift rows, manage limited resources
+- **Animation**: Smooth CSS transitions with gravity-drop sound effects
+- **AI**: Minimax with alpha-beta pruning at depth 7 (described as &quot;probably unbeatable&quot;)
+- **Audio**: Fully procedural synthesis—no audio files
+- **Testing**: Comprehensive AI test suite validates move selection, win/block logic
+- **Polish**: Disc counting, status banner, drop-in animations, stereo panning
+
+The codebase is well-organized, type-safe, and game-ready for both casual and competitive play against the AI.</pre><pre>agentId: a6839ed6644501a87 (for resuming to continue this agent&#x27;s work if needed)
+&lt;usage&gt;total_tokens: 37784
+tool_uses: 24
+duration_ms: 43456&lt;/usage&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-06-30-070Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-06-30-070Z" class="timestamp-link"><time datetime="2026-03-14T01:06:30.070Z" data-timestamp="2026-03-14T01:06:30.070Z">2026-03-14T01:06:30.070Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MHGoShrVBbxa1Eb98GfzYq"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/rules.txt&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-06-30-082Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-06-30-082Z" class="timestamp-link"><time datetime="2026-03-14T01:06:30.082Z" data-timestamp="2026-03-14T01:06:30.082Z">2026-03-14T01:06:30.082Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→There is a grid of cells similar to Connect Four, but it&#x27;s only 3x3.
+     2→Players (red and black) take turns dropping their discs into one of the three slots;
+     3→ of course, if the column is full players must choose another one.
+     4→There are five discs of each colour; these are a resource and should be tracked on screen in some way.
+     5→
+     6→Instead of dropping a disc, players may instead shift a row to the left or to the right.
+     7→This action physically moves the discs in that row over by one. Gravity then ensues in all columns.
+     8→It should be noted that the rows may only be moved by one from their original position; that is:
+     9→ if the top row is shifted left, then it may not be shifted left anymore until it is shifted right.
+    10→If a disc is shifted out of the playing field, such as by being in the left column preceding a left shift,
+    11→ then it falls out of the board, and is reclaimed by the player to be played on a subsequent turn.
+    12→
+    13→The winner is the first player to get 3 of their colour in a row.
+    14→It is possible for both players to win simultaneously.
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-06-51-846Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-06-51-846Z" class="timestamp-link"><time datetime="2026-03-14T01:06:51.846Z" data-timestamp="2026-03-14T01:06:51.846Z">2026-03-14T01:06:51.846Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_017ZqWZuhg6hn2z9FzoPpnFs">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">CLAUDE.md</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/CLAUDE.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Shift Tac Toe
+
+A 3x3 Connect-Four variant built with React + TypeScript + Vite.
+
+## Commands
+
+```bash
+npm run dev      # start dev server
+npm run test     # run Vitest tests
+npm run build    # typecheck + build
+```
+
+## Game Rules
+
+- 3×3 grid; players drop discs into columns (gravity applies)
+- 5 discs per player (limited resource — ejected discs are reclaimed)
+- Instead of dropping, a player may shift any row left or right by 1
+  - Each row can only be ±1 from its original position
+  - Discs shifted off the edge are returned to that player
+  - Gravity applies after every action
+- Win: 3-in-a-row (row, column, or diagonal); both players can win simultaneously
+
+## Architecture
+
+**State**: `gameReducer` (reducer pattern) holds all authoritative game state. `App.tsx` holds UI-only state (animations, display board frozen during transitions).
+
+**Logic lives in `src/logic/`** — pure functions, no React deps. Keep it that way.
+
+- `gameReducer.ts` — actions: `DROP_DISC`, `SHIFT_ROW`, `RESET_GAME`
+- `shift.ts` — row shifting + ejection; returns `gravityDrops` for sound/animation
+- `gravity.ts` — `applyGravityAll`, `applyGravityAllTracked` (returns which cells filled)
+- `winDetection.ts` — checks 8 lines; exports `LINES` for the AI evaluator
+- `validation.ts` — `canDrop`, `canShift`
+- `ai.ts` — minimax + alpha-beta pruning at depth 7; `getBestMove(state)`
+- `ai.test.ts` — Vitest tests; run with `npm test`
+
+**Constants** (`src/constants.ts`): `ROWS=3`, `COLS=3`, `DISCS_PER_PLAYER=5`, `MAX_OFFSET=1`, `CELL_SIZE=80px`.
+
+**Sounds** (`src/sounds.ts`): fully procedural Web Audio API — no audio files. `playDropSound(col)` pans by column; `playShiftSound(direction)` pans by direction.
+
+## Key Patterns
+
+**Gravity-drop sound trigger**: after a shift animation ends, `App.tsx` reads `latestGravityDropsRef` (set from `gameState.lastGravityDrops` in the reducer) and plays staggered clack sounds. Do not use board diffing — use the authoritative `gravityDrops` from `ShiftResult`.
+
+**AI re-trigger after human shift**: the AI `useEffect` includes `shiftAnimEndKey` in its deps. This is a state counter incremented in `handleShiftTransitionEnd` — necessary because refs don&#39;t trigger effects.
+
+**Row animation**: `displayBoard` and `slotOffsets` are frozen at shift start; `transformOffsets` drives the CSS transition. Board snaps to `gameState` after `transitionend`.
+
+**Game modes**: `mode: &#39;1p&#39; | &#39;2p&#39;` in App state. AI always plays black. Board and shift controls are `disabled` during AI turn.
+
+## AI
+
+Minimax with alpha-beta pruning, depth 7. Evaluation scores 8 lines by disc counts (2-in-line = ±100, 1-in-line = ±10, mixed = 0). Terminal scores include depth bonus to prefer faster wins / slower losses. Moves are shuffled before root iteration for non-determinism.
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-07-29-551Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-07-29-551Z" class="timestamp-link"><time datetime="2026-03-14T01:07:29.551Z" data-timestamp="2026-03-14T01:07:29.551Z">2026-03-14T01:07:29.551Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/hayley/projects/shift-tac-toe/CLAUDE.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-07-34-500Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-07-34-500Z" class="timestamp-link"><time datetime="2026-03-14T01:07:34.500Z" data-timestamp="2026-03-14T01:07:34.500Z">2026-03-14T01:07:34.500Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><a href="CLAUDE.md">CLAUDE.md</a> created. It covers commands, game rules, architecture overview, the key non-obvious patterns (gravity drop tracking, AI re-trigger fix, row animation freeze), and the AI design.</p></div></div></div>
+<div class="message user" id="msg-2026-03-14T01-09-35-441Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-03-14T01-09-35-441Z" class="timestamp-link"><time datetime="2026-03-14T01:09:35.441Z" data-timestamp="2026-03-14T01:09:35.441Z">2026-03-14T01:09:35.441Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><ide_opened_file>The user opened the file /Users/hayley/projects/shift-tac-toe/src/logic/ai.ts in the IDE. This may or may not be related to the current task.</ide_opened_file></p></div>
+<div class="assistant-text"><p>The AI is really good, I honestly think it may be unbeatable haha. That's cool and all but it's not as much fun. Is there a tuning lever we can tweak? I'd like to have difficulty levels, say... Easy / Hard / Impossible?</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-37-993Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-37-993Z" class="timestamp-link"><time datetime="2026-03-14T01:09:37.993Z" data-timestamp="2026-03-14T01:09:37.993Z">2026-03-14T01:09:37.993Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants difficulty levels for the AI. Let me read the current AI implementation to understand what levers we have.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-38-538Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-38-538Z" class="timestamp-link"><time datetime="2026-03-14T01:09:38.538Z" data-timestamp="2026-03-14T01:09:38.538Z">2026-03-14T01:09:38.538Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01RFzxsW6tS3D53t4zRbnJLG"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-09-38-555Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-09-38-555Z" class="timestamp-link"><time datetime="2026-03-14T01:09:38.555Z" data-timestamp="2026-03-14T01:09:38.555Z">2026-03-14T01:09:38.555Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→import type { GameState, Action, Player } from &#x27;../types&#x27;;
+     2→import { ROWS, COLS } from &#x27;../constants&#x27;;
+     3→import { gameReducer } from &#x27;./gameReducer&#x27;;
+     4→import { canDrop, canShift } from &#x27;./validation&#x27;;
+     5→import { LINES } from &#x27;./winDetection&#x27;;
+     6→
+     7→function getMoves(state: GameState): Action[] {
+     8→  const moves: Action[] = [];
+     9→  for (let c = 0; c &lt; COLS; c++) {
+    10→    if (canDrop(state, c)) moves.push({ type: &#x27;DROP_DISC&#x27;, col: c });
+    11→  }
+    12→  for (let r = 0; r &lt; ROWS; r++) {
+    13→    if (canShift(state, r, &#x27;left&#x27;))  moves.push({ type: &#x27;SHIFT_ROW&#x27;, row: r, direction: &#x27;left&#x27; });
+    14→    if (canShift(state, r, &#x27;right&#x27;)) moves.push({ type: &#x27;SHIFT_ROW&#x27;, row: r, direction: &#x27;right&#x27; });
+    15→  }
+    16→  return moves;
+    17→}
+    18→
+    19→function evaluate(state: GameState, aiPlayer: Player): number {
+    20→  const opp: Player = aiPlayer === &#x27;red&#x27; ? &#x27;black&#x27; : &#x27;red&#x27;;
+    21→  let score = 0;
+    22→  for (const line of LINES) {
+    23→    let aiCount = 0;
+    24→    let oppCount = 0;
+    25→    for (const [r, c] of line) {
+    26→      const cell = state.board[r][c];
+    27→      if (cell === aiPlayer) aiCount++;
+    28→      else if (cell === opp) oppCount++;
+    29→    }
+    30→    // Mixed lines are worthless — skip
+    31→    if (aiCount &gt; 0 &amp;&amp; oppCount &gt; 0) continue;
+    32→    if (aiCount === 2) score += 100;
+    33→    else if (aiCount === 1) score += 10;
+    34→    if (oppCount === 2) score -= 100;
+    35→    else if (oppCount === 1) score -= 10;
+    36→  }
+    37→  return score;
+    38→}
+    39→
+    40→function minimax(
+    41→  state: GameState,
+    42→  depth: number,
+    43→  alpha: number,
+    44→  beta: number,
+    45→  maximizing: boolean,
+    46→  aiPlayer: Player,
+    47→): number {
+    48→  if (state.phase === &#x27;won&#x27;) {
+    49→    // If aiPlayer is in winners it&#x27;s a win; if opponent is, it&#x27;s a loss; if both, draw.
+    50→    const aiWon  = state.winners.includes(aiPlayer);
+    51→    const oppWon = state.winners.length &gt; 0 &amp;&amp; !aiWon;
+    52→    if (aiWon &amp;&amp; oppWon) return 0;
+    53→    return aiWon ? 10000 + depth : -(10000 + depth);
+    54→    // Depth bonus makes the AI prefer faster wins and slower losses.
+    55→  }
+    56→  if (state.phase === &#x27;draw&#x27;) return 0;
+    57→  if (depth === 0) return evaluate(state, aiPlayer);
+    58→
+    59→  const moves = getMoves(state);
+    60→  if (moves.length === 0) return evaluate(state, aiPlayer);
+    61→
+    62→  if (maximizing) {
+    63→    let best = -Infinity;
+    64→    for (const action of moves) {
+    65→      const next = gameReducer(state, action);
+    66→      best = Math.max(best, minimax(next, depth - 1, alpha, beta, false, aiPlayer));
+    67→      alpha = Math.max(alpha, best);
+    68→      if (alpha &gt;= beta) break;
+    69→    }
+    70→    return best;
+    71→  } else {
+    72→    let best = Infinity;
+    73→    for (const action of moves) {
+    74→      const next = gameReducer(state, action);
+    75→      best = Math.min(best, minimax(next, depth - 1, alpha, beta, true, aiPlayer));
+    76→      beta = Math.min(beta, best);
+    77→      if (alpha &gt;= beta) break;
+    78→    }
+    79→    return best;
+    80→  }
+    81→}
+    82→
+    83→/** Returns the best action for the current player in `state`. */
+    84→export function getBestMove(state: GameState, depth = 7): Action | null {
+    85→  const aiPlayer = state.currentPlayer;
+    86→  const moves = getMoves(state);
+    87→  if (moves.length === 0) return null;
+    88→
+    89→  // Shuffle to break ties non-deterministically
+    90→  for (let i = moves.length - 1; i &gt; 0; i--) {
+    91→    const j = Math.floor(Math.random() * (i + 1));
+    92→    [moves[i], moves[j]] = [moves[j], moves[i]];
+    93→  }
+    94→
+    95→  let bestScore = -Infinity;
+    96→  let bestMove = moves[0];
+    97→  for (const action of moves) {
+    98→    const next = gameReducer(state, action);
+    99→    const score = minimax(next, depth - 1, -Infinity, Infinity, false, aiPlayer);
+   100→    if (score &gt; bestScore) {
+   101→      bestScore = score;
+   102→      bestMove = action;
+   103→    }
+   104→  }
+   105→  return bestMove;
+   106→}
+   107→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-49-636Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-49-636Z" class="timestamp-link"><time datetime="2026-03-14T01:09:49.636Z" data-timestamp="2026-03-14T01:09:49.636Z">2026-03-14T01:09:49.636Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Good. Two natural levers here:</p>
+<ol>
+<li><strong>Depth</strong> - lowering depth makes the AI weaker (less lookahead)</li>
+<li><strong>Random move injection</strong> - instead of always picking the best move, sometimes pick a random one</li>
+</ol>
+<p>For a 3x3 board with ~9 possible moves, depth 7 is very strong. Let me think about good difficulty settings:</p>
+<ul>
+<li><strong>Easy</strong>: depth 1 (only looks 1 move ahead) + high randomness (maybe 40% chance of random move)</li>
+<li><strong>Hard</strong>: depth 3-4 + low randomness (maybe 10-15%)</li>
+<li>
+<p><strong>Impossible</strong>: depth 7, no randomness (current behavior)</p>
+</li>
+<li>
+<p><strong>Easy</strong> could go even further with depth 1 and a 50% chance of picking a completely random move to make it beatable. I think combining both depth reduction and randomness works better than just tuning one lever—it makes the AI feel less predictable while still being weaker at lower difficulties.</p>
+</li>
+</ul>
+<p>Now I need to wire this into the UI by adding a difficulty type and state to the App component, threading that through to the getBestMove function, and creating difficulty selection buttons. Let me check how getBestMove is currently being called and what button styles are already available.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-51-023Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-51-023Z" class="timestamp-link"><time datetime="2026-03-14T01:09:51.023Z" data-timestamp="2026-03-14T01:09:51.023Z">2026-03-14T01:09:51.023Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good levers available: <strong>search depth</strong> (currently 7) and <strong>randomness</strong> (chance to pick a random move instead of the best one). Combining both gives natural-feeling difficulty tiers:</p>
+<ul>
+<li><strong>Easy</strong>: depth 1, 40% random move chance</li>
+<li><strong>Hard</strong>: depth 4, 15% random move chance  </li>
+<li><strong>Impossible</strong>: depth 7, 0% (current behavior)</li>
+</ul>
+<p>Let me check how App.tsx calls the AI and how the buttons are styled.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-52-292Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-52-292Z" class="timestamp-link"><time datetime="2026-03-14T01:09:52.292Z" data-timestamp="2026-03-14T01:09:52.292Z">2026-03-14T01:09:52.292Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017fGtpq8ce4nyumsQScqki1"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;getBestMove|new-game|mode|difficulty&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-09-52-308Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-09-52-308Z" class="timestamp-link"><time datetime="2026-03-14T01:09:52.308Z" data-timestamp="2026-03-14T01:09:52.308Z">2026-03-14T01:09:52.308Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>4:import { getBestMove } from &#x27;./logic/ai&#x27;;
+12:  const [mode, setMode] = useState&lt;&#x27;1p&#x27; | &#x27;2p&#x27;&gt;(&#x27;2p&#x27;);
+52:  // AI: trigger a move when it&#x27;s black&#x27;s turn in 1P mode.
+56:      mode !== &#x27;1p&#x27; ||
+65:      const action = getBestMove(gameState);
+73:  }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
+75:  const isAiTurn = mode === &#x27;1p&#x27; &amp;&amp; gameState.currentPlayer === &#x27;black&#x27; &amp;&amp; gameState.phase === &#x27;playing&#x27;;
+169:      &lt;div className=&quot;new-game-btns&quot;&gt;
+170:        &lt;button className=&quot;new-game-btn&quot; onClick={() =&gt; handleModeChange(&#x27;2p&#x27;)}&gt;
+173:        &lt;button className=&quot;new-game-btn&quot; onClick={() =&gt; handleModeChange(&#x27;1p&#x27;)}&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-52-941Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-52-941Z" class="timestamp-link"><time datetime="2026-03-14T01:09:52.941Z" data-timestamp="2026-03-14T01:09:52.941Z">2026-03-14T01:09:52.941Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KcPTgiMXspjwRkmLzH2mEw"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;new-game|mode-btn|difficulty&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.css&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-09-52-954Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-09-52-954Z" class="timestamp-link"><time datetime="2026-03-14T01:09:52.954Z" data-timestamp="2026-03-14T01:09:52.954Z">2026-03-14T01:09:52.954Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>205:.new-game-btns {
+210:.new-game-btn {
+221:.new-game-btn:hover {</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-55-435Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-55-435Z" class="timestamp-link"><time datetime="2026-03-14T01:09:55.435Z" data-timestamp="2026-03-14T01:09:55.435Z">2026-03-14T01:09:55.435Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_014E3LGE4YNEcK8ppKMLzRPX"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;limit&#34;: 90
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-09-55-448Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-09-55-448Z" class="timestamp-link"><time datetime="2026-03-14T01:09:55.448Z" data-timestamp="2026-03-14T01:09:55.448Z">2026-03-14T01:09:55.448Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→import { useReducer, useState, useRef, useEffect } from &#x27;react&#x27;;
+     2→import type { Board as BoardType, RowOffsets } from &#x27;./types&#x27;;
+     3→import { gameReducer, initialState } from &#x27;./logic/gameReducer&#x27;;
+     4→import { getBestMove } from &#x27;./logic/ai&#x27;;
+     5→import { Board } from &#x27;./components/Board&#x27;;
+     6→import { DiscCounter } from &#x27;./components/DiscCounter&#x27;;
+     7→import { PlayerBanner } from &#x27;./components/PlayerBanner&#x27;;
+     8→import { playDropSound, playShiftSound } from &#x27;./sounds&#x27;;
+     9→import &#x27;./App.css&#x27;;
+    10→
+    11→export function App() {
+    12→  const [mode, setMode] = useState&lt;&#x27;1p&#x27; | &#x27;2p&#x27;&gt;(&#x27;2p&#x27;);
+    13→  const [gameState, dispatch] = useReducer(gameReducer, undefined, initialState);
+    14→
+    15→  // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
+    16→  const [displayBoard, setDisplayBoard] = useState&lt;BoardType&gt;(() =&gt; initialState().board);
+    17→
+    18→  // slotOffsets: used by getSlots() to place board data into the 5-slot array.
+    19→  // Stays at the OLD value during animation so data stays in its original positions.
+    20→  const [slotOffsets, setSlotOffsets] = useState&lt;RowOffsets&gt;([0, 0, 0]);
+    21→
+    22→  // transformOffsets: drives the CSS translateX on the slider.
+    23→  // Updated immediately on shift to trigger the CSS transition.
+    24→  const [transformOffsets, setTransformOffsets] = useState&lt;RowOffsets&gt;([0, 0, 0]);
+    25→
+    26→  // Only play drop-in animation on explicit DROP actions, not after shift snaps.
+    27→  const [enableDropAnim, setEnableDropAnim] = useState(false);
+    28→
+    29→  // Increments each time a shift animation ends — used as a dep so the AI
+    30→  // effect re-runs after a human shift (shiftAnimatingRef alone isn&#x27;t a React dep).
+    31→  const [shiftAnimEndKey, setShiftAnimEndKey] = useState(0);
+    32→
+    33→  const shiftAnimatingRef = useRef(false);
+    34→  const animatingRowRef = useRef&lt;number | null&gt;(null);
+    35→  const latestBoardRef = useRef(gameState.board);
+    36→  const latestOffsetsRef = useRef(gameState.rowOffsets);
+    37→  const latestGravityDropsRef = useRef(gameState.lastGravityDrops);
+    38→  latestBoardRef.current = gameState.board;
+    39→  latestOffsetsRef.current = gameState.rowOffsets;
+    40→  latestGravityDropsRef.current = gameState.lastGravityDrops;
+    41→
+    42→  // Sync display state for non-shift actions (drops, resets).
+    43→  useEffect(() =&gt; {
+    44→    if (!shiftAnimatingRef.current) {
+    45→      setDisplayBoard(gameState.board);
+    46→      setSlotOffsets(gameState.rowOffsets);
+    47→      setTransformOffsets(gameState.rowOffsets);
+    48→      setEnableDropAnim(true);
+    49→    }
+    50→  }, [gameState.board, gameState.rowOffsets]);
+    51→
+    52→  // AI: trigger a move when it&#x27;s black&#x27;s turn in 1P mode.
+    53→  const aiThinkingRef = useRef(false);
+    54→  useEffect(() =&gt; {
+    55→    if (
+    56→      mode !== &#x27;1p&#x27; ||
+    57→      gameState.phase !== &#x27;playing&#x27; ||
+    58→      gameState.currentPlayer !== &#x27;black&#x27; ||
+    59→      shiftAnimatingRef.current ||
+    60→      aiThinkingRef.current
+    61→    ) return;
+    62→
+    63→    aiThinkingRef.current = true;
+    64→    const timer = setTimeout(() =&gt; {
+    65→      const action = getBestMove(gameState);
+    66→      aiThinkingRef.current = false;
+    67→      if (!action) return;
+    68→      if (action.type === &#x27;DROP_DISC&#x27;) handleDrop(action.col);
+    69→      else if (action.type === &#x27;SHIFT_ROW&#x27;) handleShift(action.row, action.direction);
+    70→    }, 500);
+    71→    return () =&gt; clearTimeout(timer);
+    72→  // eslint-disable-next-line react-hooks/exhaustive-deps
+    73→  }, [mode, gameState.phase, gameState.currentPlayer, gameState.board, shiftAnimEndKey]);
+    74→
+    75→  const isAiTurn = mode === &#x27;1p&#x27; &amp;&amp; gameState.currentPlayer === &#x27;black&#x27; &amp;&amp; gameState.phase === &#x27;playing&#x27;;
+    76→
+    77→  function handleDrop(col: number) {
+    78→    playDropSound(col);
+    79→    dispatch({ type: &#x27;DROP_DISC&#x27;, col });
+    80→  }
+    81→
+    82→  function handleShift(row: number, direction: &#x27;left&#x27; | &#x27;right&#x27;) {
+    83→    const preBoard = gameState.board;
+    84→    const oldSlotOffsets = slotOffsets; // capture before any state change
+    85→    playShiftSound(direction);
+    86→    dispatch({ type: &#x27;SHIFT_ROW&#x27;, row, direction });
+    87→
+    88→    shiftAnimatingRef.current = true;
+    89→    animatingRowRef.current = row;
+    90→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-55-749Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-55-749Z" class="timestamp-link"><time datetime="2026-03-14T01:09:55.749Z" data-timestamp="2026-03-14T01:09:55.749Z">2026-03-14T01:09:55.749Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01C9Xgz5UbiHkbni6U2pW2HK"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.css&#34;,
+  &#34;offset&#34;: 200
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-09-55-794Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-09-55-794Z" class="timestamp-link"><time datetime="2026-03-14T01:09:55.794Z" data-timestamp="2026-03-14T01:09:55.794Z">2026-03-14T01:09:55.794Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>   200→  background: #ffffff22;
+   201→  color: #fff;
+   202→}
+   203→
+   204→/* ── New Game buttons ───────────────────────────────── */
+   205→.new-game-btns {
+   206→  display: flex;
+   207→  gap: 8px;
+   208→}
+   209→
+   210→.new-game-btn {
+   211→  padding: 10px 28px;
+   212→  border-radius: 8px;
+   213→  font-size: 1rem;
+   214→  font-weight: 600;
+   215→  letter-spacing: 0.05em;
+   216→  background: #ffffff22;
+   217→  color: #fff;
+   218→  transition: background 0.15s;
+   219→}
+   220→
+   221→.new-game-btn:hover {
+   222→  background: #ffffff33;
+   223→}
+   224→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-09-58-092Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-09-58-092Z" class="timestamp-link"><time datetime="2026-03-14T01:09:58.092Z" data-timestamp="2026-03-14T01:09:58.092Z">2026-03-14T01:09:58.092Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_013hd8GcNWiQCDJ66LDXgL7b"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;offset&#34;: 155,
+  &#34;limit&#34;: 35
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-09-58-101Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-09-58-101Z" class="timestamp-link"><time datetime="2026-03-14T01:09:58.101Z" data-timestamp="2026-03-14T01:09:58.101Z">2026-03-14T01:09:58.101Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>   155→      /&gt;
+   156→
+   157→      &lt;Board
+   158→        gameState={gameState}
+   159→        displayBoard={displayBoard}
+   160→        slotOffsets={slotOffsets}
+   161→        transformOffsets={transformOffsets}
+   162→        enableDropAnim={enableDropAnim}
+   163→        onDrop={handleDrop}
+   164→        onShift={handleShift}
+   165→        onShiftTransitionEnd={handleShiftTransitionEnd}
+   166→        disabled={isAiTurn}
+   167→      /&gt;
+   168→
+   169→      &lt;div className=&quot;new-game-btns&quot;&gt;
+   170→        &lt;button className=&quot;new-game-btn&quot; onClick={() =&gt; handleModeChange(&#x27;2p&#x27;)}&gt;
+   171→          New Game vs Player
+   172→        &lt;/button&gt;
+   173→        &lt;button className=&quot;new-game-btn&quot; onClick={() =&gt; handleModeChange(&#x27;1p&#x27;)}&gt;
+   174→          New Game vs AI
+   175→        &lt;/button&gt;
+   176→      &lt;/div&gt;
+   177→    &lt;/div&gt;
+   178→  );
+   179→}
+   180→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-23-351Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-23-351Z" class="timestamp-link"><time datetime="2026-03-14T01:10:23.351Z" data-timestamp="2026-03-14T01:10:23.351Z">2026-03-14T01:10:23.351Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Now I have a clear picture. Let me plan the changes:</p>
+<ol>
+<li><strong><code>src/logic/ai.ts</code></strong>: Add <code>difficulty</code> parameter to <code>getBestMove</code> with <code>depth</code> and <code>randomChance</code>:</li>
+<li>Easy: depth 1, 40% random</li>
+<li>Hard: depth 4, 15% random</li>
+<li>
+<p>Impossible: depth 7, 0% random</p>
+</li>
+<li>
+<p><strong><code>src/App.tsx</code></strong>: </p>
+</li>
+<li>Add <code>Difficulty</code> type and <code>difficulty</code> state</li>
+<li>Pass difficulty to <code>getBestMove</code></li>
+<li>Change "New Game vs AI" button to show difficulty options</li>
+<li>For the UI, I'll replace "New Game vs AI" with three separate buttons for each difficulty level: "vs AI: Easy", "vs AI: Hard", and "vs AI: Impossible" — this keeps the interface clean and makes it immediately clear what each option does.</li>
+</ol>
+<p>Actually, I'm second-guessing whether three buttons is too many. Let me consider a layout with a difficulty selector that sits alongside the main buttons, or maybe just keep it simple with a single row. I think the clearest approach is to have "New Game vs Player" on one row, then the three AI difficulty buttons below it with a "vs AI:" label to group them visually.</p>
+<p>Wait, I could also just put them all in one row and let the button labels speak for themselves. Users will understand that "Easy", "Hard", and "Impossible" start games against the AI. The key insight is that I should always show all three difficulty options and let clicking any of them start a fresh game at that difficulty, rather than trying to track which difficulty was last selected. That way there's no confusion about what happens when you click a button.</p>
+<p>So my layout is: "New Game vs Player" alongside "Easy", "Hard", and "Impossible" buttons. When playing against the AI, I'll highlight whichever difficulty is currently active so the player knows what level they're on. Actually, highlighting might add unnecessary complexity—I'll just keep the buttons simple and let the game state speak for itself.</p>
+<p>Now I'm ready to update the code to replace the single "New Game vs AI" button with these three difficulty options.</p>
+<p>Defining the difficulty type and configuration...</p>
+<p>I'm setting up a minimax algorithm with alpha-beta pruning that evaluates moves at different search depths based on difficulty, shuffling moves to break ties, then scoring each option and returning the best one.</p>
+<p>Now I need to wire this into the React component by importing the AI logic, adding difficulty state, and replacing the single AI button with three difficulty options that each trigger a new single-player game.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-23-375Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-23-375Z" class="timestamp-link"><time datetime="2026-03-14T01:10:23.375Z" data-timestamp="2026-03-14T01:10:23.375Z">2026-03-14T01:10:23.375Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017TrsUcBKyfchSXWKrmPphL"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;handleModeChange|handleReset&#34;,
+  &#34;path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;output_mode&#34;: &#34;content&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-23-387Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-23-387Z" class="timestamp-link"><time datetime="2026-03-14T01:10:23.387Z" data-timestamp="2026-03-14T01:10:23.387Z">2026-03-14T01:10:23.387Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>120:  function handleReset() {
+128:  function handleModeChange(newMode: &#x27;1p&#x27; | &#x27;2p&#x27;) {
+130:    handleReset();
+170:        &lt;button className=&quot;new-game-btn&quot; onClick={() =&gt; handleModeChange(&#x27;2p&#x27;)}&gt;
+173:        &lt;button className=&quot;new-game-btn&quot; onClick={() =&gt; handleModeChange(&#x27;1p&#x27;)}&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-26-213Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-26-213Z" class="timestamp-link"><time datetime="2026-03-14T01:10:26.213Z" data-timestamp="2026-03-14T01:10:26.213Z">2026-03-14T01:10:26.213Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EepE5RPfnUJX4tBaxcvxsk"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/hayley/projects/shift-tac-toe/src/App.tsx&#34;,
+  &#34;offset&#34;: 120,
+  &#34;limit&#34;: 15
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-26-221Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-26-221Z" class="timestamp-link"><time datetime="2026-03-14T01:10:26.221Z" data-timestamp="2026-03-14T01:10:26.221Z">2026-03-14T01:10:26.221Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>   120→  function handleReset() {
+   121→    dispatch({ type: &#x27;RESET_GAME&#x27; });
+   122→    shiftAnimatingRef.current = false;
+   123→    animatingRowRef.current = null;
+   124→    aiThinkingRef.current = false;
+   125→    // useEffect will sync on next render
+   126→  }
+   127→
+   128→  function handleModeChange(newMode: &#x27;1p&#x27; | &#x27;2p&#x27;) {
+   129→    setMode(newMode);
+   130→    handleReset();
+   131→  }
+   132→
+   133→  return (
+   134→    &lt;div className=&quot;game&quot;&gt;
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-30-835Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-30-835Z" class="timestamp-link"><time datetime="2026-03-14T01:10:30.835Z" data-timestamp="2026-03-14T01:10:30.835Z">2026-03-14T01:10:30.835Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good, clear picture. Here's the plan:</p>
+<ul>
+<li><strong><code>ai.ts</code></strong>: export <code>Difficulty</code> type + config table; <code>getBestMove</code> takes a <code>difficulty</code> param; lower difficulties randomly skip minimax and pick a random move</li>
+<li><strong><code>App.tsx</code></strong>: add <code>difficulty</code> state; pass to <code>getBestMove</code>; add <code>handleAiGame(diff)</code> helper; swap AI button for 3 difficulty buttons; highlight the active one</li>
+<li><strong><code>App.css</code></strong>: <code>.new-game-btn.active</code> style</li>
+</ul></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-37-186Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-37-186Z" class="timestamp-link"><time datetime="2026-03-14T01:10:37.186Z" data-timestamp="2026-03-14T01:10:37.186Z">2026-03-14T01:10:37.186Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01DSbmgpBBd4CP98LaaWyggz">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">ai.ts</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/logic/ai.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">/** Returns the best action for the current player in `state`. */
+export function getBestMove(state: GameState, depth = 7): Action | null {
+  const aiPlayer = state.currentPlayer;
+  const moves = getMoves(state);
+  if (moves.length === 0) return null;
+
+  // Shuffle to break ties non-deterministically
+  for (let i = moves.length - 1; i &gt; 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [moves[i], moves[j]] = [moves[j], moves[i]];
+  }
+
+  let bestScore = -Infinity;
+  let bestMove = moves[0];
+  for (const action of moves) {
+    const next = gameReducer(state, action);
+    const score = minimax(next, depth - 1, -Infinity, Infinity, false, aiPlayer);
+    if (score &gt; bestScore) {
+      bestScore = score;
+      bestMove = action;
+    }
+  }
+  return bestMove;
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">export type Difficulty = &#39;easy&#39; | &#39;hard&#39; | &#39;impossible&#39;;
+
+const DIFFICULTY_CONFIG: Record&lt;Difficulty, { depth: number; randomChance: number }&gt; = {
+  easy:       { depth: 1, randomChance: 0.45 },
+  hard:       { depth: 4, randomChance: 0.15 },
+  impossible: { depth: 7, randomChance: 0 },
+};
+
+/** Returns the best action for the current player in `state`. */
+export function getBestMove(state: GameState, difficulty: Difficulty = &#39;impossible&#39;): Action | null {
+  const { depth, randomChance } = DIFFICULTY_CONFIG[difficulty];
+  const aiPlayer = state.currentPlayer;
+  const moves = getMoves(state);
+  if (moves.length === 0) return null;
+
+  // Lower difficulties randomly skip minimax and pick any legal move.
+  if (randomChance &gt; 0 &amp;&amp; Math.random() &lt; randomChance) {
+    return moves[Math.floor(Math.random() * moves.length)];
+  }
+
+  // Shuffle to break ties non-deterministically
+  for (let i = moves.length - 1; i &gt; 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [moves[i], moves[j]] = [moves[j], moves[i]];
+  }
+
+  let bestScore = -Infinity;
+  let bestMove = moves[0];
+  for (const action of moves) {
+    const next = gameReducer(state, action);
+    const score = minimax(next, depth - 1, -Infinity, Infinity, false, aiPlayer);
+    if (score &gt; bestScore) {
+      bestScore = score;
+      bestMove = action;
+    }
+  }
+  return bestMove;
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-40-036Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-40-036Z" class="timestamp-link"><time datetime="2026-03-14T01:10:40.036Z" data-timestamp="2026-03-14T01:10:40.036Z">2026-03-14T01:10:40.036Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/logic/ai.ts has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-43-686Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-43-686Z" class="timestamp-link"><time datetime="2026-03-14T01:10:43.686Z" data-timestamp="2026-03-14T01:10:43.686Z">2026-03-14T01:10:43.686Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now update App.tsx — import <code>Difficulty</code>, add state, wire it up:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-44-580Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-44-580Z" class="timestamp-link"><time datetime="2026-03-14T01:10:44.580Z" data-timestamp="2026-03-14T01:10:44.580Z">2026-03-14T01:10:44.580Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01EuL5BfbKTXq9UWsZJJHmDs">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.tsx</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import { getBestMove } from &#39;./logic/ai&#39;;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import { getBestMove, type Difficulty } from &#39;./logic/ai&#39;;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-44-587Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-44-587Z" class="timestamp-link"><time datetime="2026-03-14T01:10:44.587Z" data-timestamp="2026-03-14T01:10:44.587Z">2026-03-14T01:10:44.587Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.tsx has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-48-248Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-48-248Z" class="timestamp-link"><time datetime="2026-03-14T01:10:48.248Z" data-timestamp="2026-03-14T01:10:48.248Z">2026-03-14T01:10:48.248Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Need to add the difficulty state and wire it up before the import warning goes away. Let me continue with the edits.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-49-480Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-49-480Z" class="timestamp-link"><time datetime="2026-03-14T01:10:49.480Z" data-timestamp="2026-03-14T01:10:49.480Z">2026-03-14T01:10:49.480Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_018WYTF6tCiS6jFctbSf6BYq">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.tsx</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  const [mode, setMode] = useState&lt;&#39;1p&#39; | &#39;2p&#39;&gt;(&#39;2p&#39;);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  const [mode, setMode] = useState&lt;&#39;1p&#39; | &#39;2p&#39;&gt;(&#39;2p&#39;);
+  const [difficulty, setDifficulty] = useState&lt;Difficulty&gt;(&#39;impossible&#39;);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-49-485Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-49-485Z" class="timestamp-link"><time datetime="2026-03-14T01:10:49.485Z" data-timestamp="2026-03-14T01:10:49.485Z">2026-03-14T01:10:49.485Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.tsx has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-54-303Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-54-303Z" class="timestamp-link"><time datetime="2026-03-14T01:10:54.303Z" data-timestamp="2026-03-14T01:10:54.303Z">2026-03-14T01:10:54.303Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Need to continue wiring it up - pass difficulty to getBestMove and update the buttons.</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-55-202Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-55-202Z" class="timestamp-link"><time datetime="2026-03-14T01:10:55.202Z" data-timestamp="2026-03-14T01:10:55.202Z">2026-03-14T01:10:55.202Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_017wHDoCuTiBsnWMakqLjhqk">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.tsx</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      const action = getBestMove(gameState);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      const action = getBestMove(gameState, difficulty);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-55-215Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-55-215Z" class="timestamp-link"><time datetime="2026-03-14T01:10:55.215Z" data-timestamp="2026-03-14T01:10:55.215Z">2026-03-14T01:10:55.215Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.tsx has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-10-59-364Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-10-59-364Z" class="timestamp-link"><time datetime="2026-03-14T01:10:59.364Z" data-timestamp="2026-03-14T01:10:59.364Z">2026-03-14T01:10:59.364Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01SSUvLjN3fNm9iuZ3cMZWM1">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.tsx</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  function handleModeChange(newMode: &#39;1p&#39; | &#39;2p&#39;) {
+    setMode(newMode);
+    handleReset();
+  }</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  function handleModeChange(newMode: &#39;1p&#39; | &#39;2p&#39;) {
+    setMode(newMode);
+    handleReset();
+  }
+
+  function handleAiGame(diff: Difficulty) {
+    setDifficulty(diff);
+    setMode(&#39;1p&#39;);
+    handleReset();
+  }</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-10-59-424Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-10-59-424Z" class="timestamp-link"><time datetime="2026-03-14T01:10:59.424Z" data-timestamp="2026-03-14T01:10:59.424Z">2026-03-14T01:10:59.424Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.tsx has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-02-153Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-02-153Z" class="timestamp-link"><time datetime="2026-03-14T01:11:02.153Z" data-timestamp="2026-03-14T01:11:02.153Z">2026-03-14T01:11:02.153Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now update the buttons:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-05-691Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-05-691Z" class="timestamp-link"><time datetime="2026-03-14T01:11:05.691Z" data-timestamp="2026-03-14T01:11:05.691Z">2026-03-14T01:11:05.691Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Qu9sb9Bexn5MVWSn9JKyMD">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.tsx</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      &lt;div className=&#34;new-game-btns&#34;&gt;
+        &lt;button className=&#34;new-game-btn&#34; onClick={() =&gt; handleModeChange(&#39;2p&#39;)}&gt;
+          New Game vs Player
+        &lt;/button&gt;
+        &lt;button className=&#34;new-game-btn&#34; onClick={() =&gt; handleModeChange(&#39;1p&#39;)}&gt;
+          New Game vs AI
+        &lt;/button&gt;
+      &lt;/div&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      &lt;div className=&#34;new-game-btns&#34;&gt;
+        &lt;button className=&#34;new-game-btn&#34; onClick={() =&gt; handleModeChange(&#39;2p&#39;)}&gt;
+          vs Player
+        &lt;/button&gt;
+        &lt;button
+          className={`new-game-btn${mode === &#39;1p&#39; &amp;&amp; difficulty === &#39;easy&#39; ? &#39; active&#39; : &#39;&#39;}`}
+          onClick={() =&gt; handleAiGame(&#39;easy&#39;)}
+        &gt;
+          Easy
+        &lt;/button&gt;
+        &lt;button
+          className={`new-game-btn${mode === &#39;1p&#39; &amp;&amp; difficulty === &#39;hard&#39; ? &#39; active&#39; : &#39;&#39;}`}
+          onClick={() =&gt; handleAiGame(&#39;hard&#39;)}
+        &gt;
+          Hard
+        &lt;/button&gt;
+        &lt;button
+          className={`new-game-btn${mode === &#39;1p&#39; &amp;&amp; difficulty === &#39;impossible&#39; ? &#39; active&#39; : &#39;&#39;}`}
+          onClick={() =&gt; handleAiGame(&#39;impossible&#39;)}
+        &gt;
+          Impossible
+        &lt;/button&gt;
+      &lt;/div&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-11-05-697Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-11-05-697Z" class="timestamp-link"><time datetime="2026-03-14T01:11:05.697Z" data-timestamp="2026-03-14T01:11:05.697Z">2026-03-14T01:11:05.697Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.tsx has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-09-111Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-09-111Z" class="timestamp-link"><time datetime="2026-03-14T01:11:09.111Z" data-timestamp="2026-03-14T01:11:09.111Z">2026-03-14T01:11:09.111Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now add the <code>.active</code> style and tighten padding for the smaller buttons:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-10-458Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-10-458Z" class="timestamp-link"><time datetime="2026-03-14T01:11:10.458Z" data-timestamp="2026-03-14T01:11:10.458Z">2026-03-14T01:11:10.458Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01AyxTrvt3KscuRmRzc1y8R8">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.css</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.css</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">.new-game-btn:hover {
+  background: #ffffff33;
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">.new-game-btn:hover {
+  background: #ffffff33;
+}
+
+.new-game-btn.active {
+  background: #ffffff44;
+  outline: 2px solid #ffffff88;
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-11-10-464Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-11-10-464Z" class="timestamp-link"><time datetime="2026-03-14T01:11:10.464Z" data-timestamp="2026-03-14T01:11:10.464Z">2026-03-14T01:11:10.464Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.css has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-13-615Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-13-615Z" class="timestamp-link"><time datetime="2026-03-14T01:11:13.615Z" data-timestamp="2026-03-14T01:11:13.615Z">2026-03-14T01:11:13.615Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Also reduce horizontal padding on the buttons so four fit comfortably:</p></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-14-432Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-14-432Z" class="timestamp-link"><time datetime="2026-03-14T01:11:14.432Z" data-timestamp="2026-03-14T01:11:14.432Z">2026-03-14T01:11:14.432Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01C7uHYdb19ZQytxVedPzCQZ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">App.css</span></div>
+<div class="file-tool-fullpath">/Users/hayley/projects/shift-tac-toe/src/App.css</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">.new-game-btn {
+  padding: 10px 28px;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">.new-game-btn {
+  padding: 10px 18px;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-03-14T01-11-14-437Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-03-14T01-11-14-437Z" class="timestamp-link"><time datetime="2026-03-14T01:11:14.437Z" data-timestamp="2026-03-14T01:11:14.437Z">2026-03-14T01:11:14.437Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/hayley/projects/shift-tac-toe/src/App.css has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-03-14T01-11-18-812Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-03-14T01-11-18-812Z" class="timestamp-link"><time datetime="2026-03-14T01:11:18.812Z" data-timestamp="2026-03-14T01:11:18.812Z">2026-03-14T01:11:18.812Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. You now have four buttons: <strong>vs Player</strong>, <strong>Easy</strong>, <strong>Hard</strong>, <strong>Impossible</strong>. The active AI difficulty is highlighted with an outline. </p>
+<p>The difficulty levers in <code>ai.ts</code>:
+- <strong>Easy</strong>: depth 1, 45% chance of a random move
+- <strong>Hard</strong>: depth 4, 15% chance of a random move<br />
+- <strong>Impossible</strong>: depth 7, pure minimax (unchanged)</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-004.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<span class="current">5</span>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-006.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
