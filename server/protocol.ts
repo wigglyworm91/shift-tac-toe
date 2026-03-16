@@ -3,10 +3,17 @@
 
 export type Player = 'red' | 'black';
 
+export interface GameConfig {
+  rows: number;
+  cols: number;
+  winLength: number;
+  maxOffset: number;
+}
+
 export type Action =
   | { type: 'DROP_DISC'; col: number }
   | { type: 'SHIFT_ROW'; row: number; direction: 'left' | 'right' }
-  | { type: 'RESET_GAME' }
+  | { type: 'RESET_GAME'; config?: GameConfig; firstPlayer?: Player }
   | { type: 'RESIGN'; loser: Player };
 
 // ── Client → Server ──────────────────────────────────────────────────────────
@@ -72,6 +79,18 @@ export interface RematchAcceptRelayMsg {
   type: 'REMATCH_ACCEPT';
 }
 
+export interface SpectateStartMsg {
+  type: 'SPECTATE_START';
+  redName: string;
+  blackName: string;
+  actions: Action[];
+}
+
+export interface PlayerLeftMsg {
+  type: 'PLAYER_LEFT';
+  playerColor: Player;
+}
+
 export type ServerMessage =
   | RoomCreatedMsg
   | GameStartMsg
@@ -79,4 +98,6 @@ export type ServerMessage =
   | ErrorMsg
   | OpponentLeftMsg
   | RematchOfferRelayMsg
-  | RematchAcceptRelayMsg;
+  | RematchAcceptRelayMsg
+  | SpectateStartMsg
+  | PlayerLeftMsg;

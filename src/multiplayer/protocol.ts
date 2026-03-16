@@ -66,6 +66,20 @@ export interface RematchAcceptRelayMsg {
   type: 'REMATCH_ACCEPT';
 }
 
+/** Sent when a spectator joins — includes full action log to replay */
+export interface SpectateStartMsg {
+  type: 'SPECTATE_START';
+  redName: string;
+  blackName: string;
+  actions: Action[];
+}
+
+/** Sent to spectators when a player disconnects */
+export interface PlayerLeftMsg {
+  type: 'PLAYER_LEFT';
+  playerColor: Player;
+}
+
 export type ServerMessage =
   | RoomCreatedMsg
   | GameStartMsg
@@ -73,4 +87,6 @@ export type ServerMessage =
   | ErrorMsg
   | OpponentLeftMsg
   | RematchOfferRelayMsg
-  | RematchAcceptRelayMsg;
+  | RematchAcceptRelayMsg
+  | SpectateStartMsg
+  | PlayerLeftMsg;

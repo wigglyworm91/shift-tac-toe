@@ -63,6 +63,15 @@ export function OnlineLobby({ mpState, shareUrl, onDisconnect }: Props) {
     );
   }
 
+  if (mpState === 'spectating_ended') {
+    return (
+      <div className="online-lobby">
+        <p className="lobby-status">A player has left the game.</p>
+        <button className="lobby-btn" onClick={onDisconnect}>Back to menu</button>
+      </div>
+    );
+  }
+
   // idle — only reachable on error
   return (
     <div className="online-lobby">

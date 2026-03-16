@@ -38,7 +38,8 @@ export function App() {
 
   const { mpState, shareUrl, myColor, username, setUsername, opponentName,
     createRoom, sendAction, disconnect, lastOpponentAction,
-    rematchState, rematchAccepted, offerRematch, acceptRematch } = useMultiplayer();
+    rematchState, rematchAccepted, offerRematch, acceptRematch,
+    spectatorNames, initialActions, clearInitialActions } = useMultiplayer();
 
   // displayBoard: what cells are rendered. Frozen at pre-shift state during animation.
   const [displayBoard, setDisplayBoard] = useState<BoardType>(() => initialState().board);
@@ -128,6 +129,22 @@ export function App() {
     if (rematchState === 'received') playRematchSound();
   }, [rematchState]);
 
+  // Spectator: replay the full action log when we first join a game in progress.
+  useEffect(() => {
+    if (mpState !== 'spectating' || initialActions === null) return;
+    // Reset to a clean slate, then replay all logged actions.
+    // React 18 batches these dispatches into a single render.
+    dispatch({ type: 'RESET_GAME', firstPlayer: 'red' });
+    for (const action of initialActions) {
+      dispatch(action);
+    }
+    shiftAnimatingRef.current = false;
+    animatingRowRef.current = null;
+    clearInitialActions();
+    playGameStartSound();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mpState, initialActions]);
+
   // Online: apply incoming opponent actions.
   useEffect(() => {
     if (!lastOpponentAction) return;
@@ -175,7 +192,7 @@ export function App() {
 
   const isAiTurn = (mode === '1p' && gameState.currentPlayer === 'black' || mode === '0p') && gameState.phase === 'playing';
   const isOnlineOpponentTurn = mode === 'online' && myColor !== null && gameState.currentPlayer !== myColor;
-  const boardDisabled = isAiTurn || isOnlineOpponentTurn;
+  const boardDisabled = isAiTurn || isOnlineOpponentTurn || mpState === 'spectating';
 
   // remote=true means this action came from the opponent — don't echo it back to the server.
   function handleDrop(col: number, remote = false) {
@@ -285,7 +302,7 @@ export function App() {
     <div className="game">
       <h1 className="title">Shift Tac Toe</h1>
 
-      {mode === 'online' && mpState !== 'playing' ? (
+      {mode === 'online' && mpState !== 'playing' && mpState !== 'spectating' ? (
         <OnlineLobby
           mpState={mpState}
           shareUrl={shareUrl}
@@ -318,9 +335,13 @@ export function App() {
             isOnlineOpponentTurn={isOnlineOpponentTurn}
           />
 
-          {mode === 'online' && opponentName && (
+          {mode === 'online' && mpState === 'spectating' && spectatorNames ? (
+            <p className="opponent-name spectator-label">
+              Spectating: {spectatorNames.red} vs {spectatorNames.black}
+            </p>
+          ) : mode === 'online' && opponentName ? (
             <p className="opponent-name">vs. {opponentName}</p>
-          )}
+          ) : null}
 
           <Board
             gameState={gameState}
@@ -340,7 +361,7 @@ export function App() {
             </div>
           )}
 
-          {mode === 'online' && gameState.phase !== 'playing' && (
+          {mode === 'online' && mpState !== 'spectating' && gameState.phase !== 'playing' && (
             <div className="rematch-row">
               {rematchState === 'none' && (
                 <button className="lobby-btn" onClick={offerRematch}>Offer Rematch</button>
@@ -358,7 +379,7 @@ export function App() {
 
       <div className="game-btns">
         <button className="back-btn" onClick={handleBackToLobby}>← New Game</button>
-        {mode === 'online' ? (
+        {mpState !== 'spectating' && (mode === 'online' ? (
           <button
             className="back-btn"
             disabled={gameState.phase !== 'playing'}
@@ -370,7 +391,7 @@ export function App() {
           >Resign</button>
         ) : (
           <button className="back-btn" onClick={() => handleReset()}>Restart</button>
-        )}
+        ))}
       </div>
     </div>
     {footer}

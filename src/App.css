@@ -313,6 +313,10 @@ button {
   letter-spacing: 0.05em;
 }
 
+.spectator-label {
+  font-style: italic;
+}
+
 /* ── Rematch ────────────────────────────────────────── */
 .repetition-warning {
   font-size: 0.85rem;

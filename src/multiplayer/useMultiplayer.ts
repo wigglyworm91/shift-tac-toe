@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Player, Action } from '../types';
 import type { ClientMessage, ServerMessage } from './protocol';
 
-export type MpState = 'idle' | 'connecting' | 'waiting' | 'playing' | 'opponent_left';
+export type MpState = 'idle' | 'connecting' | 'waiting' | 'playing' | 'opponent_left' | 'spectating' | 'spectating_ended';
 export type RematchState = 'none' | 'offered' | 'received';
 
 export interface UseMultiplayerReturn {
@@ -20,6 +20,9 @@ export interface UseMultiplayerReturn {
   rematchAccepted: number;
   offerRematch: () => void;
   acceptRematch: () => void;
+  spectatorNames: { red: string; black: string } | null;
+  initialActions: Action[] | null;
+  clearInitialActions: () => void;
 }
 
 function getRoomCodeFromUrl(): string | null {
@@ -43,6 +46,8 @@ export function useMultiplayer(): UseMultiplayerReturn {
   const [lastOpponentAction, setLastOpponentAction] = useState<Action | null>(null);
   const [rematchState, setRematchState] = useState<RematchState>('none');
   const [rematchAccepted, setRematchAccepted] = useState(0);
+  const [spectatorNames, setSpectatorNames] = useState<{ red: string; black: string } | null>(null);
+  const [initialActions, setInitialActions] = useState<Action[] | null>(null);
 
   const [username, setUsernameState] = useState<string>(
     () => localStorage.getItem('shift-tac-toe-username') ?? ''
@@ -100,6 +105,16 @@ export function useMultiplayer(): UseMultiplayerReturn {
 
       } else if (msg.type === 'PLAYER_ACTION') {
         setLastOpponentAction(msg.action);
+
+      } else if (msg.type === 'SPECTATE_START') {
+        console.log('[WS] spectating', msg.redName, '(red) vs', msg.blackName, '(black)');
+        setSpectatorNames({ red: msg.redName, black: msg.blackName });
+        setInitialActions(msg.actions);
+        setMpState('spectating');
+
+      } else if (msg.type === 'PLAYER_LEFT') {
+        console.log('[WS] player left:', msg.playerColor);
+        setMpState('spectating_ended');
 
       } else if (msg.type === 'REMATCH_OFFER') {
         // If we already offered, both clicked simultaneously — treat as mutual accept
@@ -165,6 +180,10 @@ export function useMultiplayer(): UseMultiplayerReturn {
     send({ type: 'REMATCH_ACCEPT' });
   }, [send]);
 
+  const clearInitialActions = useCallback(() => {
+    setInitialActions(null);
+  }, []);
+
   const disconnect = useCallback(() => {
     console.log('[WS] disconnecting');
     wsRef.current?.close();
@@ -175,6 +194,8 @@ export function useMultiplayer(): UseMultiplayerReturn {
     setOpponentName(null);
     setLastOpponentAction(null);
     setRematchState('none');
+    setSpectatorNames(null);
+    setInitialActions(null);
     // Navigate back to root
     history.pushState(null, '', import.meta.env.BASE_URL as string);
   }, [send]);
@@ -194,5 +215,5 @@ export function useMultiplayer(): UseMultiplayerReturn {
     return () => window.removeEventListener('popstate', onPopState);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { mpState, shareUrl, myColor, username, setUsername, opponentName, createRoom, sendAction, disconnect, lastOpponentAction, rematchState, rematchAccepted, offerRematch, acceptRematch };
+  return { mpState, shareUrl, myColor, username, setUsername, opponentName, createRoom, sendAction, disconnect, lastOpponentAction, rematchState, rematchAccepted, offerRematch, acceptRematch, spectatorNames, initialActions, clearInitialActions };
 }

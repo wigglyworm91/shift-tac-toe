@@ -29,7 +29,7 @@ npm run build:server # compile server to dist-server/
 
 **Logic lives in `src/logic/`** — pure functions, no React deps. Keep it that way.
 
-- `gameReducer.ts` — actions: `DROP_DISC`, `SHIFT_ROW`, `RESET_GAME`
+- `gameReducer.ts` — actions: `DROP_DISC`, `SHIFT_ROW`, `RESET_GAME`, `RESIGN`
 - `shift.ts` — row shifting + ejection; returns `gravityDrops` for sound/animation
 - `gravity.ts` — `applyGravityAll`, `applyGravityAllTracked` (returns which cells filled)
 - `winDetection.ts` — checks 8 lines; exports `LINES` for the AI evaluator
@@ -52,6 +52,8 @@ npm run build:server # compile server to dist-server/
 **Game modes**: `mode: '1p' | '2p' | 'online'` in App state. AI always plays black. Board and shift controls are `disabled` during AI turn or opponent's online turn.
 
 **Online multiplayer**: action-relay architecture — the server never runs game logic. Both clients run `gameReducer` independently; the server just forwards actions from one socket to the other. Room codes are in the URL (`/game/XKCD42`). Colors are randomly assigned at join time. See `src/multiplayer/` for the hook and lobby component, `server/` for the WebSocket server.
+
+**Spectator mode**: if a room is already full when a third person clicks the link, they join as a spectator. The server maintains a per-room `actionLog` of every relayed `PLAYER_ACTION`. On spectator join, the server sends `SPECTATE_START { redName, blackName, actions[] }`. The client replays the full log via `dispatch` in a loop (React 18 batches these into one render) to reconstruct current state, then receives future moves as normal `PLAYER_ACTION` relays. Spectators have `mpState === 'spectating'`; board is disabled; resign/rematch UI is hidden. Rematches inject a synthetic `RESET_GAME` into the action log server-side (since rematch resets are not sent as `PLAYER_ACTION`). When a player disconnects, spectators receive `PLAYER_LEFT` and transition to `spectating_ended`.
 
 **Rematch flow**: after a game ends online, either player can click "Offer Rematch"; the other sees "Accept Rematch". On accept, both boards reset via the `rematchAccepted` counter in `useMultiplayer` (App.tsx watches it and calls `handleReset`). If both offer simultaneously, it's treated as a mutual accept.
 
