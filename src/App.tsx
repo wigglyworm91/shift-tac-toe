@@ -196,7 +196,7 @@ export function App() {
 
   // remote=true means this action came from the opponent — don't echo it back to the server.
   function handleDrop(col: number, remote = false) {
-    playDropSound(col);
+    playDropSound(col, gameState.config.cols);
     dispatch({ type: 'DROP_DISC', col });
     if (mode === 'online' && !remote) sendAction({ type: 'DROP_DISC', col });
   }
@@ -229,7 +229,7 @@ export function App() {
     shiftAnimatingRef.current = false;
     animatingRowRef.current = null;
     // Play clack for each disc that landed due to gravity after the shift.
-    latestGravityDropsRef.current.forEach(([, c], i) => playDropSound(c, i * 0.04));
+    latestGravityDropsRef.current.forEach(([, c], i) => playDropSound(c, latestBoardRef.current[0].length, i * 0.04));
 
     // Snap board and both offset arrays to actual post-shift state.
     setDisplayBoard(latestBoardRef.current);

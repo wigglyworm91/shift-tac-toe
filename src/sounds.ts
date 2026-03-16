@@ -7,14 +7,14 @@ function getCtx(): AudioContext {
   return ctx;
 }
 
-/** col 0 → -0.5, col 1 → 0, col 2 → +0.5 */
-function colToPan(col: number): number {
-  return (col - 1) * 0.5;
+/** Maps col to stereo pan [-0.6, +0.6] for any grid width */
+function colToPan(col: number, numCols: number): number {
+  if (numCols <= 1) return 0;
+  return ((col / (numCols - 1)) * 2 - 1) * 0.6;
 }
 
 /** Short percussive clack — bandpass-filtered noise burst */
-export function playDropSound(col: number, delaySec = 0): void {
-  console.log('[sound] playDropSound col:', col, 'delay:', delaySec);
+export function playDropSound(col: number, numCols: number, delaySec = 0): void {
   const ac = getCtx();
   const now = ac.currentTime + delaySec;
   const duration = 0.18;
@@ -33,11 +33,11 @@ export function playDropSound(col: number, delaySec = 0): void {
   filter.Q.value = 1.8;
 
   const gain = ac.createGain();
-  gain.gain.setValueAtTime(0.85, now);
+  gain.gain.setValueAtTime(0.42, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
   const panner = ac.createStereoPanner();
-  panner.pan.value = colToPan(col);
+  panner.pan.value = colToPan(col, numCols);
 
   source.connect(filter);
   filter.connect(gain);
@@ -46,6 +46,12 @@ export function playDropSound(col: number, delaySec = 0): void {
 
   source.start(now);
   source.stop(now + duration);
+  source.onended = () => {
+    source.disconnect();
+    filter.disconnect();
+    gain.disconnect();
+    panner.disconnect();
+  };
 }
 
 /** Ascending arpeggio — 4 notes rising */
