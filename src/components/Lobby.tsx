@@ -118,7 +118,7 @@ export function Lobby({ selections, onChange, onPlay, username, onUsernameChange
 
   function handleModeChange(m: ModeKey) {
     if (m === '1p') setVsAiClicks(c => c + 1);
-    else setVsAiClicks(0);
+    else if (!easterEggUnlocked) setVsAiClicks(0);
     onChange({ ...selections, mode: m });
   }
 
