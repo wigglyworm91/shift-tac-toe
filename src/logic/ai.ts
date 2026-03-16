@@ -55,9 +55,8 @@ function minimax(
   lines: Coord[][],
 ): number {
   if (state.phase === 'won') {
-    const aiWon  = state.winners.includes(aiPlayer);
-    const oppWon = state.winners.length > 0 && !aiWon;
-    if (aiWon && oppWon) return 0;
+    if (state.winners.length === 2) return -25; // both win — undesirable but better than losing
+    const aiWon = state.winners.includes(aiPlayer);
     return aiWon ? 10000 + depth : -(10000 + depth);
   }
   if (state.phase === 'draw') return 0;
